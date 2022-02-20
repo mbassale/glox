@@ -1,6 +1,9 @@
 package glox
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type Scanner interface {
 	ScanTokens() []Token
@@ -98,7 +101,11 @@ func (s *SimpleScanner) scanToken() {
 	case '"':
 		s.string()
 	default:
-		s.errorReporter.Error(s.line, fmt.Sprintf("Unexpected character: '%c'", c))
+		if isDigit(c) {
+			s.number()
+		} else {
+			s.errorReporter.Error(s.line, fmt.Sprintf("Unexpected character: '%c'", c))
+		}
 	}
 }
 
@@ -130,6 +137,13 @@ func (s *SimpleScanner) peek() rune {
 	return s.source[s.current]
 }
 
+func (s *SimpleScanner) peekNext() rune {
+	if s.current+1 >= len(s.source) {
+		return 0x0
+	}
+	return s.source[s.current+1]
+}
+
 func (s *SimpleScanner) addToken(tokenType int) {
 	s.addTokenWithLiteral(tokenType, nil)
 }
@@ -157,4 +171,31 @@ func (s *SimpleScanner) string() {
 
 	value := s.source[s.start+1 : s.current-1]
 	s.addTokenWithLiteral(TOKEN_STRING, value)
+}
+
+func (s *SimpleScanner) number() {
+	for isDigit(s.peek()) {
+		s.advance()
+	}
+
+	// look for a fractional part.
+	if s.peek() == '.' && isDigit(s.peekNext()) {
+		// consume the "."
+		s.advance()
+
+		for isDigit(s.peek()) {
+			s.advance()
+		}
+	}
+
+	numberStr := string(s.source[s.start:s.current])
+	if number, err := strconv.ParseFloat(numberStr, 64); err == nil {
+		s.addTokenWithLiteral(TOKEN_NUMBER, number)
+	} else {
+		s.errorReporter.Error(s.line, fmt.Sprintf("Invalid float number: %v", numberStr))
+	}
+}
+
+func isDigit(c rune) bool {
+	return c >= '0' && c <= '9'
 }
