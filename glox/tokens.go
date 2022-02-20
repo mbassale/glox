@@ -1,6 +1,8 @@
 package glox
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	_ = iota
