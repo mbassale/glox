@@ -71,7 +71,7 @@ func NewToken(tokenType int, lexeme string, literal interface{}, line int) Token
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf("%v %v %v", TokenTypeToString(t.Type), t.Lexeme, t.Literal)
+	return fmt.Sprintf("%v %v %v", TokenTypeToString(t.Type), t.Lexeme, TokenLiteralToString(t.Type, t.Literal))
 }
 
 func TokenTypeToString(tokenType int) string {
@@ -114,7 +114,20 @@ func TokenTypeToString(tokenType int) string {
 		return ">"
 	case TOKEN_SLASH:
 		return "/"
+	case TOKEN_STRING:
+		return "TOKEN_STRING"
 	default:
 		return "N/A"
+	}
+}
+
+func TokenLiteralToString(tokenType int, literal interface{}) string {
+	switch literal := literal.(type) {
+	case string:
+		return literal
+	case []rune:
+		return string(literal)
+	default:
+		return fmt.Sprintf("%v", literal)
 	}
 }

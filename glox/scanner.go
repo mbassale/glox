@@ -95,6 +95,8 @@ func (s *SimpleScanner) scanToken() {
 		// ignore whitespace
 	case '\n':
 		s.line++
+	case '"':
+		s.string()
 	default:
 		s.errorReporter.Error(s.line, fmt.Sprintf("Unexpected character: '%c'", c))
 	}
@@ -135,4 +137,24 @@ func (s *SimpleScanner) addToken(tokenType int) {
 func (s *SimpleScanner) addTokenWithLiteral(tokenType int, literal interface{}) {
 	text := s.source[s.start:s.current]
 	s.tokens = append(s.tokens, NewToken(tokenType, string(text), literal, s.line))
+}
+
+func (s *SimpleScanner) string() {
+	for s.peek() != '"' && !s.isAtEnd() {
+		if s.peek() == '\n' {
+			s.line++
+		}
+		s.advance()
+	}
+
+	if s.isAtEnd() {
+		s.errorReporter.Error(s.line, "Unterminated string.")
+		return
+	}
+
+	// the closing ".
+	s.advance()
+
+	value := s.source[s.start+1 : s.current-1]
+	s.addTokenWithLiteral(TOKEN_STRING, value)
 }
