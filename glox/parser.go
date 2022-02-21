@@ -221,7 +221,7 @@ func (p *Parser) primary() (Expr, error) {
 		return NewLiteralExpr(nil), nil
 	}
 	if p.match(TOKEN_NUMBER, TOKEN_STRING) {
-		return NewLiteralExpr(p.previous()), nil
+		return NewLiteralExpr(p.previous().Literal), nil
 	}
 	if p.match(TOKEN_LEFT_PAREN) {
 		expr, err := p.expression()
