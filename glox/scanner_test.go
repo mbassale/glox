@@ -76,6 +76,29 @@ func TestScanTokens(t *testing.T) {
 				NewToken(TOKEN_EOF, "", nil, 1),
 			},
 		},
+		{
+			"single line comment",
+			"//test",
+			[]Token{
+				NewToken(TOKEN_EOF, "", nil, 1),
+			},
+		},
+		{
+			"multiline comment",
+			"/*comment1/*comment2/*comment3*/*/*/ if (test) { return true; }",
+			[]Token{
+				NewToken(TOKEN_IF, "if", nil, 1),
+				NewToken(TOKEN_LEFT_PAREN, "(", nil, 1),
+				NewToken(TOKEN_IDENTIFIER, "test", "test", 1),
+				NewToken(TOKEN_RIGHT_PAREN, ")", nil, 1),
+				NewToken(TOKEN_LEFT_BRACE, "{", nil, 1),
+				NewToken(TOKEN_RETURN, "return", nil, 1),
+				NewToken(TOKEN_TRUE, "true", nil, 1),
+				NewToken(TOKEN_SEMICOLON, ";", nil, 1),
+				NewToken(TOKEN_RIGHT_BRACE, "}", nil, 1),
+				NewToken(TOKEN_EOF, "", nil, 1),
+			},
+		},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()

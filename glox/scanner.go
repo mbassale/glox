@@ -108,6 +108,8 @@ func (s *SimpleScanner) scanToken() {
 			for s.peek() != '\n' && !s.isAtEnd() {
 				s.advance()
 			}
+		} else if s.match('*') {
+			s.multiLineComment()
 		} else {
 			s.addToken(TOKEN_SLASH)
 		}
@@ -227,6 +229,32 @@ func (s *SimpleScanner) identifier() {
 		s.addToken(tokenType)
 	} else {
 		s.addTokenWithLiteral(TOKEN_IDENTIFIER, text)
+	}
+}
+
+func (s *SimpleScanner) multiLineComment() {
+	// comment goes until terminator "*/"
+	commentNesting := 0
+	for !s.isAtEnd() {
+		if s.peek() == '\n' {
+			s.line++
+		} else if s.peek() == '/' && s.peekNext() == '*' {
+			commentNesting++
+			s.advance()
+		} else if s.peek() == '*' && s.peekNext() == '/' {
+			if commentNesting == 0 {
+				if !s.isAtEnd() {
+					s.advance()
+				}
+				if !s.isAtEnd() {
+					s.advance()
+				}
+				break
+			}
+			commentNesting--
+			s.advance()
+		}
+		s.advance()
 	}
 }
 
