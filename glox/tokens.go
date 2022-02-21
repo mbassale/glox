@@ -116,8 +116,47 @@ func TokenTypeToString(tokenType int) string {
 		return ">"
 	case TOKEN_SLASH:
 		return "/"
+
+	case TOKEN_IDENTIFIER:
+		return "TOKEN_IDENTIFIER"
 	case TOKEN_STRING:
 		return "TOKEN_STRING"
+	case TOKEN_NUMBER:
+		return "TOKEN_NUMBER"
+
+	// Keywords.
+	case TOKEN_AND:
+		return "TOKEN_AND"
+	case TOKEN_CLASS:
+		return "TOKEN_CLASS"
+	case TOKEN_ELSE:
+		return "TOKEN_ELSE"
+	case TOKEN_FALSE:
+		return "TOKEN_FALSE"
+	case TOKEN_FUN:
+		return "TOKEN_FUN"
+	case TOKEN_FOR:
+		return "TOKEN_FOR"
+	case TOKEN_IF:
+		return "TOKEN_IF"
+	case TOKEN_NIL:
+		return "TOKEN_NIL"
+	case TOKEN_OR:
+		return "TOKEN_OR"
+	case TOKEN_PRINT:
+		return "TOKEN_PRINT"
+	case TOKEN_RETURN:
+		return "TOKEN_RETURN"
+	case TOKEN_SUPER:
+		return "TOKEN_SUPER"
+	case TOKEN_THIS:
+		return "TOKEN_THIS"
+	case TOKEN_TRUE:
+		return "TOKEN_TRUE"
+	case TOKEN_VAR:
+		return "TOKEN_VAR"
+	case TOKEN_WHILE:
+		return "TOKEN_WHILE"
 	default:
 		return "N/A"
 	}
