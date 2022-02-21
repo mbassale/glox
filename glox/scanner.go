@@ -9,6 +9,25 @@ type Scanner interface {
 	ScanTokens() []Token
 }
 
+var Keywords = map[string]int{
+	"and":    TOKEN_AND,
+	"class":  TOKEN_CLASS,
+	"else":   TOKEN_ELSE,
+	"false":  TOKEN_FALSE,
+	"for":    TOKEN_FOR,
+	"fun":    TOKEN_FUN,
+	"if":     TOKEN_IF,
+	"nil":    TOKEN_NIL,
+	"or":     TOKEN_OR,
+	"print":  TOKEN_PRINT,
+	"return": TOKEN_RETURN,
+	"super":  TOKEN_SUPER,
+	"this":   TOKEN_THIS,
+	"true":   TOKEN_TRUE,
+	"var":    TOKEN_VAR,
+	"while":  TOKEN_WHILE,
+}
+
 type SimpleScanner struct {
 	source        []rune
 	errorReporter ErrorReporter
@@ -103,6 +122,8 @@ func (s *SimpleScanner) scanToken() {
 	default:
 		if isDigit(c) {
 			s.number()
+		} else if isAlpha(c) {
+			s.identifier()
 		} else {
 			s.errorReporter.Error(s.line, fmt.Sprintf("Unexpected character: '%c'", c))
 		}
@@ -196,6 +217,27 @@ func (s *SimpleScanner) number() {
 	}
 }
 
+func (s *SimpleScanner) identifier() {
+	for isAlphaNumeric(s.peek()) {
+		s.advance()
+	}
+	text := string(s.source[s.start:s.current])
+	tokenType, isReservedWord := Keywords[text]
+	if isReservedWord {
+		s.addToken(tokenType)
+	} else {
+		s.addTokenWithLiteral(TOKEN_IDENTIFIER, text)
+	}
+}
+
 func isDigit(c rune) bool {
 	return c >= '0' && c <= '9'
+}
+
+func isAlpha(c rune) bool {
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+}
+
+func isAlphaNumeric(c rune) bool {
+	return isAlpha(c) || isDigit(c)
 }
