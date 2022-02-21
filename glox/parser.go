@@ -72,10 +72,39 @@ func (p *Parser) synchronize() {
 }
 
 /*
- * expression -> equality ;
+ * expression -> conditionalExpression ;
  */
 func (p *Parser) expression() (Expr, error) {
-	return p.equality()
+	return p.conditionalExpression()
+}
+
+/*
+ * conditionalExpression -> equality | ( equality "?" expression ":" expression )
+ */
+func (p *Parser) conditionalExpression() (Expr, error) {
+	expr, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
+
+	if p.match(TOKEN_QUESTION) {
+		left, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+		if p.match(TOKEN_COLON) {
+			right, err := p.expression()
+			if err != nil {
+				return nil, err
+			}
+			return NewConditionalExpr(expr, left, right), nil
+		} else {
+			// missing right side expression
+			return nil, NewParseError("Expecting ':' in conditional expression", p.tokens[p.current])
+		}
+	}
+
+	return expr, nil
 }
 
 /*

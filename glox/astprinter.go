@@ -13,6 +13,10 @@ func (p AstPrinter) visitBinaryExpr(expr BinaryExpr) interface{} {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
 
+func (p AstPrinter) visitConditionalExpr(expr ConditionalExpr) interface{} {
+	return p.parenthesize("?", expr.Condition, expr.Left, expr.Right)
+}
+
 func (p AstPrinter) visitGroupingExpr(expr GroupingExpr) interface{} {
 	return p.parenthesize("group", expr.Expression)
 }

@@ -78,6 +78,10 @@ func (s *SimpleScanner) scanToken() {
 		s.addToken(TOKEN_SEMICOLON)
 	case '*':
 		s.addToken(TOKEN_STAR)
+	case '?':
+		s.addToken(TOKEN_QUESTION)
+	case ':':
+		s.addToken(TOKEN_COLON)
 	case '!':
 		if s.match('=') {
 			s.addToken(TOKEN_BANG_EQUAL)

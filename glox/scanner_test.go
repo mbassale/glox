@@ -13,7 +13,7 @@ func TestScanTokens(t *testing.T) {
 		expectedTokens []Token
 	}{
 		{"empty", "", []Token{NewToken(TOKEN_EOF, "", nil, 1)}},
-		{"single and two-character tokens", "(){}<><=>====*,;-+", []Token{
+		{"single and two-character tokens", "(){}<><=>====*,;-+?:", []Token{
 			NewToken(TOKEN_LEFT_PAREN, "(", nil, 1),
 			NewToken(TOKEN_RIGHT_PAREN, ")", nil, 1),
 			NewToken(TOKEN_LEFT_BRACE, "{", nil, 1),
@@ -29,6 +29,8 @@ func TestScanTokens(t *testing.T) {
 			NewToken(TOKEN_SEMICOLON, ";", nil, 1),
 			NewToken(TOKEN_MINUS, "-", nil, 1),
 			NewToken(TOKEN_PLUS, "+", nil, 1),
+			NewToken(TOKEN_QUESTION, "?", nil, 1),
+			NewToken(TOKEN_COLON, ":", nil, 1),
 			NewToken(TOKEN_EOF, "", nil, 1),
 		},
 		},

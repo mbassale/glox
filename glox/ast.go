@@ -2,6 +2,7 @@ package glox
 
 type Visitor interface {
 	visitBinaryExpr(expr BinaryExpr) interface{}
+	visitConditionalExpr(expr ConditionalExpr) interface{}
 	visitGroupingExpr(expr GroupingExpr) interface{}
 	visitLiteralExpr(expr LiteralExpr) interface{}
 	visitUnaryExpr(expr UnaryExpr) interface{}
@@ -26,6 +27,24 @@ func NewBinaryExpr(left Expr, operator Token, right Expr) BinaryExpr {
 		Left:     left,
 		Operator: operator,
 		Right:    right,
+	}
+}
+
+type ConditionalExpr struct {
+	Condition Expr
+	Left      Expr
+	Right     Expr
+}
+
+func (e ConditionalExpr) accept(visitor Visitor) interface{} {
+	return visitor.visitConditionalExpr(e)
+}
+
+func NewConditionalExpr(condition Expr, left Expr, right Expr) ConditionalExpr {
+	return ConditionalExpr{
+		Condition: condition,
+		Left:      left,
+		Right:     right,
 	}
 }
 

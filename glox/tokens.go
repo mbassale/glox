@@ -19,6 +19,8 @@ const (
 	TOKEN_SEMICOLON
 	TOKEN_SLASH
 	TOKEN_STAR
+	TOKEN_QUESTION
+	TOKEN_COLON
 
 	// One or two character tokens.
 	TOKEN_BANG
@@ -96,6 +98,10 @@ func TokenTypeToString(tokenType int) string {
 		return ";"
 	case TOKEN_STAR:
 		return "*"
+	case TOKEN_QUESTION:
+		return "?"
+	case TOKEN_COLON:
+		return ":"
 	case TOKEN_EOF:
 		return "EOF"
 	case TOKEN_BANG_EQUAL:
