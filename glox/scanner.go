@@ -197,7 +197,7 @@ func (s *SimpleScanner) string() {
 	s.advance()
 
 	value := s.source[s.start+1 : s.current-1]
-	s.addTokenWithLiteral(TOKEN_STRING, value)
+	s.addTokenWithLiteral(TOKEN_STRING, string(value))
 }
 
 func (s *SimpleScanner) number() {

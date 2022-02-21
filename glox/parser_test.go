@@ -33,7 +33,7 @@ func TestParserExpressions(t *testing.T) {
 			),
 			NewConditionalExpr(
 				NewBinaryExpr(
-					NewLiteralExpr(NewToken(TOKEN_STRING, "\"2\"", []rune("2"), 1)),
+					NewLiteralExpr(NewToken(TOKEN_STRING, "\"2\"", "2", 1)),
 					NewToken(TOKEN_EQUAL_EQUAL, "==", nil, 1),
 					NewLiteralExpr(NewToken(TOKEN_NUMBER, "2", 2.0, 1)),
 				),

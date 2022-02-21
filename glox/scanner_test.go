@@ -47,6 +47,18 @@ func TestScanTokens(t *testing.T) {
 		},
 		},
 		{
+			"strings",
+			"\"test\" + 2 + \"test2\"",
+			[]Token{
+				NewToken(TOKEN_STRING, "\"test\"", "test", 1),
+				NewToken(TOKEN_PLUS, "+", nil, 1),
+				NewToken(TOKEN_NUMBER, "2", 2.0, 1),
+				NewToken(TOKEN_PLUS, "+", nil, 1),
+				NewToken(TOKEN_STRING, "\"test2\"", "test2", 1),
+				NewToken(TOKEN_EOF, "", nil, 1),
+			},
+		},
+		{
 			"reserverd words and identifiers",
 			"if (test) { return 2*testFunc(); } else if (noTest) { } else { no_test; }",
 			[]Token{
