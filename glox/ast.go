@@ -76,8 +76,8 @@ func NewGroupingExpr(expression Expr) GroupingExpr {
 }
 
 type LiteralExpr struct {
-	Line  int
 	Value interface{}
+	Line  int
 }
 
 func (e LiteralExpr) accept(visitor Visitor) interface{} {
@@ -88,7 +88,7 @@ func (e LiteralExpr) getLine() int {
 	return e.Line
 }
 
-func NewLiteralExpr(line int, value interface{}) LiteralExpr {
+func NewLiteralExpr(value interface{}, line int) LiteralExpr {
 	return LiteralExpr{
 		Value: value,
 		Line:  line,

@@ -212,16 +212,16 @@ func (p *Parser) unary() (Expr, error) {
  */
 func (p *Parser) primary() (Expr, error) {
 	if p.match(TOKEN_FALSE) {
-		return NewLiteralExpr(p.previous().Line, false), nil
+		return NewLiteralExpr(false, p.currentLine()), nil
 	}
 	if p.match(TOKEN_TRUE) {
-		return NewLiteralExpr(p.previous().Line, true), nil
+		return NewLiteralExpr(true, p.currentLine()), nil
 	}
 	if p.match(TOKEN_NIL) {
-		return NewLiteralExpr(p.previous().Line, nil), nil
+		return NewLiteralExpr(nil, p.currentLine()), nil
 	}
 	if p.match(TOKEN_NUMBER, TOKEN_STRING) {
-		return NewLiteralExpr(p.previous().Line, p.previous().Literal), nil
+		return NewLiteralExpr(p.previous().Literal, p.currentLine()), nil
 	}
 	if p.match(TOKEN_LEFT_PAREN) {
 		expr, err := p.expression()
@@ -272,6 +272,10 @@ func (p *Parser) peek() Token {
 
 func (p *Parser) previous() Token {
 	return p.tokens[p.current-1]
+}
+
+func (p *Parser) currentLine() int {
+	return p.previous().Line
 }
 
 func (p *Parser) consume(tokenType int, message string) (Token, error) {
