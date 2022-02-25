@@ -10,6 +10,7 @@ type Visitor interface {
 
 type Expr interface {
 	accept(visitor Visitor) interface{}
+	getLine() int
 }
 
 type BinaryExpr struct {
@@ -20,6 +21,10 @@ type BinaryExpr struct {
 
 func (e BinaryExpr) accept(visitor Visitor) interface{} {
 	return visitor.visitBinaryExpr(e)
+}
+
+func (e BinaryExpr) getLine() int {
+	return e.Operator.Line
 }
 
 func NewBinaryExpr(left Expr, operator Token, right Expr) BinaryExpr {
@@ -40,6 +45,10 @@ func (e ConditionalExpr) accept(visitor Visitor) interface{} {
 	return visitor.visitConditionalExpr(e)
 }
 
+func (e ConditionalExpr) getLine() int {
+	return e.Condition.getLine()
+}
+
 func NewConditionalExpr(condition Expr, left Expr, right Expr) ConditionalExpr {
 	return ConditionalExpr{
 		Condition: condition,
@@ -56,6 +65,10 @@ func (e GroupingExpr) accept(visitor Visitor) interface{} {
 	return visitor.visitGroupingExpr(e)
 }
 
+func (e GroupingExpr) getLine() int {
+	return e.Expression.getLine()
+}
+
 func NewGroupingExpr(expression Expr) GroupingExpr {
 	return GroupingExpr{
 		Expression: expression,
@@ -63,6 +76,7 @@ func NewGroupingExpr(expression Expr) GroupingExpr {
 }
 
 type LiteralExpr struct {
+	Line  int
 	Value interface{}
 }
 
@@ -70,9 +84,14 @@ func (e LiteralExpr) accept(visitor Visitor) interface{} {
 	return visitor.visitLiteralExpr(e)
 }
 
-func NewLiteralExpr(value interface{}) LiteralExpr {
+func (e LiteralExpr) getLine() int {
+	return e.Line
+}
+
+func NewLiteralExpr(line int, value interface{}) LiteralExpr {
 	return LiteralExpr{
 		Value: value,
+		Line:  line,
 	}
 }
 
@@ -83,6 +102,10 @@ type UnaryExpr struct {
 
 func (e UnaryExpr) accept(visitor Visitor) interface{} {
 	return visitor.visitUnaryExpr(e)
+}
+
+func (e UnaryExpr) getLine() int {
+	return e.Operator.Line
 }
 
 func NewUnaryExpr(operator Token, right Expr) UnaryExpr {

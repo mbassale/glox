@@ -212,16 +212,16 @@ func (p *Parser) unary() (Expr, error) {
  */
 func (p *Parser) primary() (Expr, error) {
 	if p.match(TOKEN_FALSE) {
-		return NewLiteralExpr(false), nil
+		return NewLiteralExpr(p.previous().Line, false), nil
 	}
 	if p.match(TOKEN_TRUE) {
-		return NewLiteralExpr(true), nil
+		return NewLiteralExpr(p.previous().Line, true), nil
 	}
 	if p.match(TOKEN_NIL) {
-		return NewLiteralExpr(nil), nil
+		return NewLiteralExpr(p.previous().Line, nil), nil
 	}
 	if p.match(TOKEN_NUMBER, TOKEN_STRING) {
-		return NewLiteralExpr(p.previous().Literal), nil
+		return NewLiteralExpr(p.previous().Line, p.previous().Literal), nil
 	}
 	if p.match(TOKEN_LEFT_PAREN) {
 		expr, err := p.expression()
