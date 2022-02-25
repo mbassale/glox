@@ -26,7 +26,7 @@ func TestInterpreterExpressions(t *testing.T) {
 		expr, err := parser.Parse()
 		assert.Nil(t, err)
 		assert.NotNil(t, expr)
-		interpreter := NewInterpreter()
+		interpreter := NewInterpreter(errorReporter)
 		actualValue := interpreter.Interpret(expr)
 		assert.Equal(t, testCase.expectedValue, actualValue, testCase.name)
 	}

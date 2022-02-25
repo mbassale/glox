@@ -6,14 +6,20 @@ import (
 	"strconv"
 )
 
+const INTERPRETER_WHERE = "interpreter"
+
 type Interpreter struct {
+	errorReporter ErrorReporter
 }
 
-func NewInterpreter() Interpreter {
-	return Interpreter{}
+func NewInterpreter(errorReporter ErrorReporter) Interpreter {
+	return Interpreter{
+		errorReporter: errorReporter,
+	}
 }
 
 func (inter *Interpreter) Interpret(expr Expr) interface{} {
+	inter.errorReporter.ClearError()
 	return inter.evaluate(expr)
 }
 
@@ -96,7 +102,11 @@ func (inter *Interpreter) visitUnaryExpr(expr UnaryExpr) interface{} {
 		val, _ := isTruthy(right)
 		return val
 	case TOKEN_MINUS:
-		val, _ := anyToFloat64(right)
+		val, err := anyToFloat64(right)
+		if err != nil {
+			inter.errorReporter.Error(expr.Operator.Line, err.Error())
+			return nil
+		}
 		return val
 	}
 
@@ -110,44 +120,63 @@ func (inter *Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {
 
 	switch expr.Operator.Type {
 	case TOKEN_GREATER:
-		leftVal, _ := anyToFloat64(left)
-		rightVal, _ := anyToFloat64(right)
+		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
+		if err != nil {
+			return nil
+		}
 		return leftVal > rightVal
 	case TOKEN_GREATER_EQUAL:
-		leftVal, _ := anyToFloat64(left)
-		rightVal, _ := anyToFloat64(right)
+		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
+		if err != nil {
+			return nil
+		}
 		return leftVal >= rightVal
 	case TOKEN_LESS:
-		leftVal, _ := anyToFloat64(left)
-		rightVal, _ := anyToFloat64(right)
+		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
+		if err != nil {
+			return nil
+		}
 		return leftVal < rightVal
 	case TOKEN_LESS_EQUAL:
-		leftVal, _ := anyToFloat64(left)
-		rightVal, _ := anyToFloat64(right)
+		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
+		if err != nil {
+			return nil
+		}
 		return leftVal <= rightVal
 	case TOKEN_MINUS:
-		leftVal, _ := anyToFloat64(left)
-		rightVal, _ := anyToFloat64(right)
+		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
+		if err != nil {
+			return nil
+		}
 		return leftVal - rightVal
 	case TOKEN_SLASH:
-		leftVal, _ := anyToFloat64(left)
-		rightVal, _ := anyToFloat64(right)
+		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
+		if err != nil {
+			return nil
+		}
 		return leftVal / rightVal
 	case TOKEN_STAR:
-		leftVal, _ := anyToFloat64(left)
-		rightVal, _ := anyToFloat64(right)
+		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
+		if err != nil {
+			return nil
+		}
 		return leftVal * rightVal
 	case TOKEN_PLUS:
 		if isNumber(left) && isNumber(right) {
-			leftVal, _ := anyToFloat64(left)
-			rightVal, _ := anyToFloat64(right)
+			leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
+			if err != nil {
+				return nil
+			}
+			return leftVal + rightVal
+		} else if isString(left) && isString(right) {
+			leftVal, rightVal, err := inter.checkStringOperands(expr, expr.Operator, left, right)
+			if err != nil {
+				return nil
+			}
 			return leftVal + rightVal
 		}
-		if isString(left) && isString(right) {
-			leftVal, _ := anyToString(left)
-			rightVal, _ := anyToString(right)
-			return leftVal + rightVal
-		}
+		inter.errorReporter.Push(expr.getLine(), INTERPRETER_WHERE, fmt.Errorf("operands must be two numbers or two strings"))
+		return nil
 	case TOKEN_BANG_EQUAL:
 		return !isEqual(left, right)
 	case TOKEN_EQUAL_EQUAL:
@@ -169,4 +198,36 @@ func (inter *Interpreter) visitConditionalExpr(expr ConditionalExpr) interface{}
 
 func (inter *Interpreter) evaluate(expr Expr) interface{} {
 	return expr.accept(inter)
+}
+
+func (inter *Interpreter) checkNumberOperands(expr Expr, operator Token, left interface{}, right interface{}) (float64, float64, error) {
+	returnError := func(err error) (float64, float64, error) {
+		inter.errorReporter.Push(expr.getLine(), INTERPRETER_WHERE, fmt.Errorf("operator %s: operands must be numbers: %w", operator.Lexeme, err))
+		return 0, 0, nil
+	}
+	leftVal, err := anyToFloat64(left)
+	if err != nil {
+		return returnError(err)
+	}
+	rightVal, err := anyToFloat64(right)
+	if err != nil {
+		return returnError(err)
+	}
+	return leftVal, rightVal, nil
+}
+
+func (inter *Interpreter) checkStringOperands(expr Expr, operator Token, left interface{}, right interface{}) (string, string, error) {
+	returnError := func(err error) (string, string, error) {
+		inter.errorReporter.Push(expr.getLine(), INTERPRETER_WHERE, fmt.Errorf("operator %s: operands must be strings: %w", operator.Lexeme, err))
+		return "", "", nil
+	}
+	leftVal, err := anyToString(left)
+	if err != nil {
+		return returnError(err)
+	}
+	rightVal, err := anyToString(right)
+	if err != nil {
+		return returnError(err)
+	}
+	return leftVal, rightVal, nil
 }
