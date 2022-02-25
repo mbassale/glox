@@ -46,13 +46,16 @@ func run(source string, errorReporter glox.ErrorReporter) {
 		fmt.Printf("Token: %v\n", token)
 	}
 	parser := glox.NewParser(tokens)
-	expr, err := parser.Parse()
+	rootExpr, err := parser.Parse()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		return
 	}
 	astPrinter := glox.AstPrinter{}
-	fmt.Println(astPrinter.Print(expr))
+	fmt.Println(astPrinter.Print(rootExpr))
+	interpreter := glox.NewInterpreter(errorReporter)
+	value := interpreter.Interpret(rootExpr)
+	fmt.Printf("Value: %v\n", value)
 }
 
 func main() {
