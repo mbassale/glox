@@ -75,6 +75,10 @@ func (p *Parser) synchronize() {
 	}
 }
 
+/*
+ * program -> statement* EOF ;
+ * statement -> expressionStatement | printStatement ;
+ */
 func (p *Parser) statement() (Stmt, error) {
 	if p.match(TOKEN_PRINT) {
 		return p.printStatement()
@@ -82,6 +86,9 @@ func (p *Parser) statement() (Stmt, error) {
 	return p.expressionStatement()
 }
 
+/*
+ * printStatement -> "print" expression ";" ;
+ */
 func (p *Parser) printStatement() (Stmt, error) {
 	value, err := p.expression()
 	if err != nil {
@@ -94,6 +101,9 @@ func (p *Parser) printStatement() (Stmt, error) {
 	return NewPrintStmt(value), nil
 }
 
+/*
+ * expressionStatement -> expression ";" ;
+ */
 func (p *Parser) expressionStatement() (Stmt, error) {
 	expr, err := p.expression()
 	if err != nil {
