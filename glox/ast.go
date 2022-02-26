@@ -3,6 +3,7 @@ package glox
 type Visitor interface {
 	visitExpressionStmt(stmt ExpressionStmt) interface{}
 	visitPrintStmt(stmt PrintStmt) interface{}
+	visitVarStmt(stmt VarStmt) interface{}
 	visitBinaryExpr(expr BinaryExpr) interface{}
 	visitConditionalExpr(expr ConditionalExpr) interface{}
 	visitGroupingExpr(expr GroupingExpr) interface{}
@@ -155,5 +156,25 @@ func (stmt PrintStmt) getLine() int {
 func NewPrintStmt(print Expr) PrintStmt {
 	return PrintStmt{
 		Print: print,
+	}
+}
+
+type VarStmt struct {
+	Name        Token
+	Initializer Expr
+}
+
+func (stmt VarStmt) accept(visitor Visitor) interface{} {
+	return visitor.visitVarStmt(stmt)
+}
+
+func (stmt VarStmt) getLine() int {
+	return stmt.Name.Line
+}
+
+func NewVarStmt(name Token, initializer Expr) VarStmt {
+	return VarStmt{
+		Name:        name,
+		Initializer: initializer,
 	}
 }

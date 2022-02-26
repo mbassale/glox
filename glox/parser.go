@@ -76,7 +76,8 @@ func (p *Parser) synchronize() {
 }
 
 /*
- * program -> statement* EOF ;
+ * program -> declaration* EOF ;
+ * declaration -> varDeclaration | statement ;
  * statement -> expressionStatement | printStatement ;
  */
 func (p *Parser) statement() (Stmt, error) {

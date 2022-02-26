@@ -103,6 +103,10 @@ func (inter *Interpreter) visitPrintStmt(stmt PrintStmt) interface{} {
 	return nil
 }
 
+func (inter *Interpreter) visitVarStmt(stmt VarStmt) interface{} {
+	return nil
+}
+
 func (inter *Interpreter) visitLiteralExpr(expr LiteralExpr) interface{} {
 	return expr.Value
 }

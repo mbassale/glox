@@ -22,7 +22,11 @@ func (p AstPrinter) visitExpressionStmt(stmt ExpressionStmt) interface{} {
 }
 
 func (p AstPrinter) visitPrintStmt(stmt PrintStmt) interface{} {
-	return p.parenthesize("print ", stmt.Print) + ";"
+	return p.parenthesize("print", stmt.Print) + ";"
+}
+
+func (p AstPrinter) visitVarStmt(stmt VarStmt) interface{} {
+	return p.parenthesize("var "+stmt.Name.Lexeme, stmt.Initializer) + ";"
 }
 
 func (p AstPrinter) visitBinaryExpr(expr BinaryExpr) interface{} {
