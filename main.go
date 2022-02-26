@@ -11,8 +11,10 @@ import (
 
 const EXIT_BAD_ARGS = 64
 const EXIT_ERROR = 65
+const EXIT_RUNTIME_ERROR = 70
 
 var hadError bool = false
+var hadRuntimeError bool = false
 
 func runFile(path string) {
 	contents, err := ioutil.ReadFile(path)
@@ -23,6 +25,9 @@ func runFile(path string) {
 	run(string(contents), errorReporter)
 	if hadError {
 		os.Exit(EXIT_ERROR)
+	}
+	if hadRuntimeError {
+		os.Exit(EXIT_RUNTIME_ERROR)
 	}
 }
 
@@ -36,11 +41,16 @@ func runPrompt() {
 		}
 		line := scanner.Text()
 		run(line, errorReporter)
+		errorReporter.ClearError()
 	}
 }
 
 func run(source string, errorReporter glox.ErrorReporter) {
 	scanner := glox.NewScanner(source, errorReporter)
+	if errorReporter.HasError() {
+		hadError = true
+		return
+	}
 	tokens := scanner.ScanTokens()
 	for _, token := range tokens {
 		fmt.Printf("Token: %v\n", token)
@@ -56,6 +66,10 @@ func run(source string, errorReporter glox.ErrorReporter) {
 	interpreter := glox.NewInterpreter(errorReporter)
 	value := interpreter.Interpret(rootExpr)
 	fmt.Printf("Value: %v\n", value)
+	if errorReporter.HasError() {
+		hadRuntimeError = true
+		return
+	}
 }
 
 func main() {
