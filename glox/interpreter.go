@@ -18,9 +18,15 @@ func NewInterpreter(errorReporter ErrorReporter) Interpreter {
 	}
 }
 
-func (inter *Interpreter) Interpret(expr Expr) interface{} {
-	inter.errorReporter.ClearError()
-	return inter.evaluate(expr)
+func (inter *Interpreter) Interpret(statements []Stmt) error {
+	for _, stmt := range statements {
+		inter.execute(stmt)
+	}
+	return nil
+}
+
+func (inter *Interpreter) execute(stmt Stmt) {
+	stmt.accept(inter)
 }
 
 func isString(val interface{}) bool {
@@ -84,6 +90,17 @@ func isTruthy(val interface{}) (bool, error) {
 
 func isEqual(left interface{}, right interface{}) bool {
 	return reflect.DeepEqual(left, right)
+}
+
+func (inter *Interpreter) visitExpressionStmt(stmt ExpressionStmt) interface{} {
+	inter.evaluate(stmt.Expression)
+	return nil
+}
+
+func (inter *Interpreter) visitPrintStmt(stmt PrintStmt) interface{} {
+	value := inter.evaluate(stmt.Print)
+	fmt.Println(value)
+	return nil
 }
 
 func (inter *Interpreter) visitLiteralExpr(expr LiteralExpr) interface{} {

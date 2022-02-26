@@ -12,10 +12,10 @@ func TestInterpreterExpressions(t *testing.T) {
 		source        string
 		expectedValue interface{}
 	}{
-		{"addition", "2+2", 4.0},
-		{"operator precedence", "2+3*4-4/2", 12.0},
-		{"conditional expression, true", "2<=3?3-1:false", 2.0},
-		{"conditional expression, false", "2==3?3-1:false", false},
+		{"addition", "2+2;", 4.0},
+		{"operator precedence", "2+3*4-4/2;", 12.0},
+		{"conditional expression, true", "2<=3?3-1:false;", 2.0},
+		{"conditional expression, false", "2==3?3-1:false;", false},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()
@@ -23,11 +23,12 @@ func TestInterpreterExpressions(t *testing.T) {
 		tokens := scanner.ScanTokens()
 		assert.NotNil(t, tokens)
 		parser := NewParser(tokens)
-		expr, err := parser.Parse()
+		statements, err := parser.Parse()
 		assert.Nil(t, err)
-		assert.NotNil(t, expr)
-		interpreter := NewInterpreter(errorReporter)
-		actualValue := interpreter.Interpret(expr)
-		assert.Equal(t, testCase.expectedValue, actualValue, testCase.name)
+		if assert.NotEmpty(t, statements) {
+			interpreter := NewInterpreter(errorReporter)
+			err := interpreter.Interpret(statements)
+			assert.Nil(t, err)
+		}
 	}
 }

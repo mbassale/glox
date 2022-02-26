@@ -1,6 +1,8 @@
 package glox
 
 type Visitor interface {
+	visitExpressionStmt(stmt ExpressionStmt) interface{}
+	visitPrintStmt(stmt PrintStmt) interface{}
 	visitBinaryExpr(expr BinaryExpr) interface{}
 	visitConditionalExpr(expr ConditionalExpr) interface{}
 	visitGroupingExpr(expr GroupingExpr) interface{}
@@ -112,5 +114,46 @@ func NewUnaryExpr(operator Token, right Expr) UnaryExpr {
 	return UnaryExpr{
 		Operator: operator,
 		Right:    right,
+	}
+}
+
+type Stmt interface {
+	accept(visitor Visitor) interface{}
+	getLine() int
+}
+
+type ExpressionStmt struct {
+	Expression Expr
+}
+
+func (stmt ExpressionStmt) accept(visitor Visitor) interface{} {
+	return visitor.visitExpressionStmt(stmt)
+}
+
+func (stmt ExpressionStmt) getLine() int {
+	return stmt.Expression.getLine()
+}
+
+func NewExpressionStmt(expression Expr) ExpressionStmt {
+	return ExpressionStmt{
+		Expression: expression,
+	}
+}
+
+type PrintStmt struct {
+	Print Expr
+}
+
+func (stmt PrintStmt) accept(visitor Visitor) interface{} {
+	return visitor.visitPrintStmt(stmt)
+}
+
+func (stmt PrintStmt) getLine() int {
+	return stmt.Print.getLine()
+}
+
+func NewPrintStmt(print Expr) PrintStmt {
+	return PrintStmt{
+		Print: print,
 	}
 }

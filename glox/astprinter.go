@@ -1,12 +1,28 @@
 package glox
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type AstPrinter struct {
 }
 
-func (p AstPrinter) Print(expr Expr) string {
-	return expr.accept(p).(string)
+func (p AstPrinter) Print(statements []Stmt) string {
+	astStrs := []string{}
+	for _, stmt := range statements {
+		astStr := stmt.accept(p).(string)
+		astStrs = append(astStrs, astStr)
+	}
+	return strings.Join(astStrs, "\n")
+}
+
+func (p AstPrinter) visitExpressionStmt(stmt ExpressionStmt) interface{} {
+	return p.parenthesize("", stmt.Expression) + ";"
+}
+
+func (p AstPrinter) visitPrintStmt(stmt PrintStmt) interface{} {
+	return p.parenthesize("print ", stmt.Print) + ";"
 }
 
 func (p AstPrinter) visitBinaryExpr(expr BinaryExpr) interface{} {

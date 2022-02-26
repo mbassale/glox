@@ -56,16 +56,15 @@ func run(source string, errorReporter glox.ErrorReporter) {
 		fmt.Printf("Token: %v\n", token)
 	}
 	parser := glox.NewParser(tokens)
-	rootExpr, err := parser.Parse()
+	statements, err := parser.Parse()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		return
 	}
 	astPrinter := glox.AstPrinter{}
-	fmt.Println(astPrinter.Print(rootExpr))
+	fmt.Println(astPrinter.Print(statements))
 	interpreter := glox.NewInterpreter(errorReporter)
-	value := interpreter.Interpret(rootExpr)
-	fmt.Printf("Value: %v\n", value)
+	interpreter.Interpret(statements)
 	if errorReporter.HasError() {
 		hadRuntimeError = true
 		return

@@ -12,7 +12,7 @@ func TestParserExpressions(t *testing.T) {
 		source       string
 		expectedExpr Expr
 	}{
-		{"basic operators", "1*2+3/4", NewBinaryExpr(
+		{"basic operators", "1*2+3/4;", NewBinaryExpr(
 			NewBinaryExpr(
 				NewLiteralExpr(1.0, 1),
 				NewToken(TOKEN_STAR, "*", nil, 1),
@@ -25,7 +25,7 @@ func TestParserExpressions(t *testing.T) {
 				NewLiteralExpr(4.0, 1),
 			),
 		)},
-		{"ternary expression", "2>=1?\"2\"==2?true:false:false", NewConditionalExpr(
+		{"ternary expression", "2>=1?\"2\"==2?true:false:false;", NewConditionalExpr(
 			NewBinaryExpr(
 				NewLiteralExpr(2.0, 1),
 				NewToken(TOKEN_GREATER_EQUAL, ">=", nil, 1),
@@ -48,10 +48,16 @@ func TestParserExpressions(t *testing.T) {
 		scanner := NewScanner(testCase.source, errorReporter)
 		tokens := scanner.ScanTokens()
 		parser := NewParser(tokens)
-		currentExpr, err := parser.Parse()
+		statements, err := parser.Parse()
 		assert.Nil(t, err)
-		assert.NotNil(t, currentExpr)
-		assert.Equal(t, testCase.expectedExpr, currentExpr, testCase.name)
+		assert.NotNil(t, statements)
+		if assert.NotEmpty(t, statements) {
+			if assert.IsType(t, NewExpressionStmt(testCase.expectedExpr), statements[0]) {
+				expressionStmt := statements[0].(ExpressionStmt)
+				currentExpr := expressionStmt.Expression
+				assert.Equal(t, testCase.expectedExpr, currentExpr, testCase.name)
+			}
+		}
 	}
 
 }

@@ -33,12 +33,16 @@ func NewParser(tokens []Token) Parser {
 	}
 }
 
-func (p *Parser) Parse() (Expr, error) {
-	expr, err := p.expression()
-	if err != nil {
-		return nil, err
+func (p *Parser) Parse() ([]Stmt, error) {
+	statements := []Stmt{}
+	for !p.isAtEnd() {
+		stmt, err := p.statement()
+		if err != nil {
+			return statements, err
+		}
+		statements = append(statements, stmt)
 	}
-	return expr, nil
+	return statements, nil
 }
 
 func (p *Parser) synchronize() {
@@ -69,6 +73,37 @@ func (p *Parser) synchronize() {
 
 		p.advance()
 	}
+}
+
+func (p *Parser) statement() (Stmt, error) {
+	if p.match(TOKEN_PRINT) {
+		return p.printStatement()
+	}
+	return p.expressionStatement()
+}
+
+func (p *Parser) printStatement() (Stmt, error) {
+	value, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	_, err = p.consume(TOKEN_SEMICOLON, "Expect ';' after value.")
+	if err != nil {
+		return nil, err
+	}
+	return NewPrintStmt(value), nil
+}
+
+func (p *Parser) expressionStatement() (Stmt, error) {
+	expr, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	_, err = p.consume(TOKEN_SEMICOLON, "Expect ';' after value.")
+	if err != nil {
+		return nil, err
+	}
+	return NewExpressionStmt(expr), nil
 }
 
 /*
