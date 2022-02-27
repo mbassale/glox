@@ -10,6 +10,7 @@ type Visitor interface {
 	visitLiteralExpr(expr LiteralExpr) interface{}
 	visitUnaryExpr(expr UnaryExpr) interface{}
 	visitVariableExpr(expr VariableExpr) interface{}
+	visitAssignExpr(expr AssignExpr) interface{}
 }
 
 type Expr interface {
@@ -134,6 +135,26 @@ func (e VariableExpr) getLine() int {
 func NewVariableExpr(name Token) VariableExpr {
 	return VariableExpr{
 		Name: name,
+	}
+}
+
+type AssignExpr struct {
+	Name  Token
+	Value Expr
+}
+
+func (e AssignExpr) accept(visitor Visitor) interface{} {
+	return visitor.visitAssignExpr(e)
+}
+
+func (e AssignExpr) getLine() int {
+	return e.Name.Line
+}
+
+func NewAssignExpr(name Token, value Expr) AssignExpr {
+	return AssignExpr{
+		Name:  name,
+		Value: value,
 	}
 }
 

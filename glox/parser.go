@@ -155,10 +155,36 @@ func (p *Parser) expressionStatement() (Stmt, error) {
 }
 
 /*
- * expression -> conditionalExpression ;
+ * expression -> assignment ;
  */
 func (p *Parser) expression() (Expr, error) {
-	return p.conditionalExpression()
+	return p.assignment()
+}
+
+/*
+ * assignment -> IDENTIFIER "=" assignment | conditionalExpression ;
+ */
+func (p *Parser) assignment() (Expr, error) {
+	expr, err := p.conditionalExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	if p.match(TOKEN_EQUAL) {
+		equals := p.previous()
+		value, err := p.assignment()
+		if err != nil {
+			return nil, err
+		}
+		variableExpr, ok := expr.(VariableExpr)
+		if ok {
+			variableName := variableExpr.Name
+			return NewAssignExpr(variableName, value), nil
+		}
+		return nil, NewParseError("Invalid assignment target.", equals)
+	}
+
+	return expr, nil
 }
 
 /*

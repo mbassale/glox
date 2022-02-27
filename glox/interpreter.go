@@ -241,6 +241,10 @@ func (inter *Interpreter) visitVariableExpr(expr VariableExpr) interface{} {
 	return value
 }
 
+func (inter *Interpreter) visitAssignExpr(expr AssignExpr) interface{} {
+	return nil
+}
+
 func (inter *Interpreter) evaluate(expr Expr) interface{} {
 	return expr.accept(inter)
 }
