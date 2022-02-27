@@ -22,7 +22,8 @@ func runFile(path string) {
 		panic(err)
 	}
 	var errorReporter glox.ErrorReporter = glox.NewConsoleErrorReporter()
-	run(string(contents), errorReporter)
+	var interpreter glox.Interpreter = glox.NewInterpreter(errorReporter)
+	run(string(contents), &interpreter, errorReporter)
 	if hadError {
 		os.Exit(EXIT_ERROR)
 	}
@@ -34,20 +35,21 @@ func runFile(path string) {
 func runPrompt() {
 	scanner := bufio.NewScanner(os.Stdin)
 	var errorReporter glox.ErrorReporter = glox.NewConsoleErrorReporter()
+	var interpreter glox.Interpreter = glox.NewInterpreter(errorReporter)
 	for {
 		fmt.Print("> ")
 		if !scanner.Scan() {
 			break
 		}
 		line := scanner.Text()
-		run(line, errorReporter)
+		run(line, &interpreter, errorReporter)
 		errorReporter.ClearError()
 	}
 }
 
-func run(source string, errorReporter glox.ErrorReporter) {
+func run(source string, interpreter *glox.Interpreter, errorReporter glox.ErrorReporter) {
 	scanner := glox.NewScanner(source, errorReporter)
-	if errorReporter.HasError() {
+	if (errorReporter).HasError() {
 		hadError = true
 		return
 	}
@@ -63,8 +65,8 @@ func run(source string, errorReporter glox.ErrorReporter) {
 	}
 	astPrinter := glox.AstPrinter{}
 	fmt.Println(astPrinter.Print(statements))
-	interpreter := glox.NewInterpreter(errorReporter)
-	interpreter.Interpret(statements)
+	lastValue, _ := interpreter.Interpret(statements)
+	fmt.Printf("=%v\n", lastValue)
 	if errorReporter.HasError() {
 		hadRuntimeError = true
 		return
