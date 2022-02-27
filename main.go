@@ -55,10 +55,10 @@ func run(source string, errorReporter glox.ErrorReporter) {
 	for _, token := range tokens {
 		fmt.Printf("Token: %v\n", token)
 	}
-	parser := glox.NewParser(tokens)
-	statements, err := parser.Parse()
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+	parser := glox.NewParser(tokens, errorReporter)
+	statements := parser.Parse()
+	if errorReporter.HasError() {
+		hadError = true
 		return
 	}
 	astPrinter := glox.AstPrinter{}

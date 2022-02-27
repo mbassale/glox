@@ -217,6 +217,10 @@ func (inter *Interpreter) visitConditionalExpr(expr ConditionalExpr) interface{}
 	}
 }
 
+func (inter *Interpreter) visitVariableExpr(expr VariableExpr) interface{} {
+	return nil
+}
+
 func (inter *Interpreter) evaluate(expr Expr) interface{} {
 	return expr.accept(inter)
 }

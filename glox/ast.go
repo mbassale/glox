@@ -9,6 +9,7 @@ type Visitor interface {
 	visitGroupingExpr(expr GroupingExpr) interface{}
 	visitLiteralExpr(expr LiteralExpr) interface{}
 	visitUnaryExpr(expr UnaryExpr) interface{}
+	visitVariableExpr(expr VariableExpr) interface{}
 }
 
 type Expr interface {
@@ -115,6 +116,24 @@ func NewUnaryExpr(operator Token, right Expr) UnaryExpr {
 	return UnaryExpr{
 		Operator: operator,
 		Right:    right,
+	}
+}
+
+type VariableExpr struct {
+	Name Token
+}
+
+func (e VariableExpr) accept(visitor Visitor) interface{} {
+	return visitor.visitVariableExpr(e)
+}
+
+func (e VariableExpr) getLine() int {
+	return e.Name.Line
+}
+
+func NewVariableExpr(name Token) VariableExpr {
+	return VariableExpr{
+		Name: name,
 	}
 }
 

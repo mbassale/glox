@@ -5,8 +5,9 @@ import (
 )
 
 type Parser struct {
-	tokens  []Token
-	current int
+	tokens        []Token
+	current       int
+	errorReporter ErrorReporter
 }
 
 type ParseError struct {
@@ -26,23 +27,26 @@ func NewParseError(message string, token Token) error {
 	return fmt.Errorf("ParseError: %w", parseError)
 }
 
-func NewParser(tokens []Token) Parser {
+func NewParser(tokens []Token, errorReporter ErrorReporter) Parser {
 	return Parser{
-		tokens:  tokens,
-		current: 0,
+		tokens:        tokens,
+		current:       0,
+		errorReporter: errorReporter,
 	}
 }
 
-func (p *Parser) Parse() ([]Stmt, error) {
+func (p *Parser) Parse() []Stmt {
 	statements := []Stmt{}
 	for !p.isAtEnd() {
-		stmt, err := p.statement()
+		stmt, err := p.declaration()
 		if err != nil {
-			return statements, err
+			p.errorReporter.Push(p.currentLine(), "Parser", err)
+			p.synchronize()
+		} else {
+			statements = append(statements, stmt)
 		}
-		statements = append(statements, stmt)
 	}
-	return statements, nil
+	return statements
 }
 
 func (p *Parser) synchronize() {
@@ -77,7 +81,40 @@ func (p *Parser) synchronize() {
 
 /*
  * program -> declaration* EOF ;
+ */
+func (p *Parser) declaration() (Stmt, error) {
+	if p.match(TOKEN_VAR) {
+		return p.varDeclaration()
+	}
+	return p.statement()
+}
+
+/*
  * declaration -> varDeclaration | statement ;
+ */
+func (p *Parser) varDeclaration() (Stmt, error) {
+	name, err := p.consume(TOKEN_IDENTIFIER, "Expect variable name.")
+	if err != nil {
+		return nil, err
+	}
+
+	var initializer Expr = nil
+	if p.match(TOKEN_EQUAL) {
+		initializer, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = p.consume(TOKEN_SEMICOLON, "Expect ';' after variable declaration.")
+	if err != nil {
+		return nil, err
+	}
+
+	return NewVarStmt(name, initializer), nil
+}
+
+/*
  * statement -> expressionStatement | printStatement ;
  */
 func (p *Parser) statement() (Stmt, error) {
@@ -254,7 +291,7 @@ func (p *Parser) unary() (Expr, error) {
 }
 
 /*
- * primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+ * primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER ;
  */
 func (p *Parser) primary() (Expr, error) {
 	if p.match(TOKEN_FALSE) {
@@ -279,6 +316,9 @@ func (p *Parser) primary() (Expr, error) {
 			return nil, err
 		}
 		return NewGroupingExpr(expr), nil
+	}
+	if p.match(TOKEN_IDENTIFIER) {
+		return NewVariableExpr(p.previous()), nil
 	}
 
 	return nil, NewParseError("Expected expression.", p.peek())

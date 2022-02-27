@@ -22,9 +22,9 @@ func TestInterpreterExpressions(t *testing.T) {
 		scanner := NewScanner(testCase.source, errorReporter)
 		tokens := scanner.ScanTokens()
 		assert.NotNil(t, tokens)
-		parser := NewParser(tokens)
-		statements, err := parser.Parse()
-		assert.Nil(t, err)
+		parser := NewParser(tokens, errorReporter)
+		statements := parser.Parse()
+		assert.False(t, errorReporter.HasError())
 		if assert.NotEmpty(t, statements) {
 			interpreter := NewInterpreter(errorReporter)
 			err := interpreter.Interpret(statements)

@@ -47,10 +47,11 @@ func TestParserExpressions(t *testing.T) {
 		errorReporter := NewConsoleErrorReporter()
 		scanner := NewScanner(testCase.source, errorReporter)
 		tokens := scanner.ScanTokens()
-		parser := NewParser(tokens)
-		statements, err := parser.Parse()
-		assert.Nil(t, err)
-		assert.NotNil(t, statements)
+		assert.False(t, errorReporter.HasError())
+		errorReporter.ClearError()
+		parser := NewParser(tokens, errorReporter)
+		statements := parser.Parse()
+		assert.False(t, errorReporter.HasError())
 		if assert.NotEmpty(t, statements) {
 			if assert.IsType(t, NewExpressionStmt(testCase.expectedExpr), statements[0]) {
 				expressionStmt := statements[0].(ExpressionStmt)

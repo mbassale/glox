@@ -52,6 +52,10 @@ func (p AstPrinter) visitUnaryExpr(expr UnaryExpr) interface{} {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
 }
 
+func (p AstPrinter) visitVariableExpr(expr VariableExpr) interface{} {
+	return expr.Name.Lexeme
+}
+
 func (p AstPrinter) parenthesize(name string, exprs ...interface{}) string {
 	var builder string
 	builder += "(" + name
