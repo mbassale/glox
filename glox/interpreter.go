@@ -10,19 +10,27 @@ const INTERPRETER_WHERE = "interpreter"
 
 type Interpreter struct {
 	errorReporter ErrorReporter
+	environment   Environment
+	lastValue     interface{}
 }
 
 func NewInterpreter(errorReporter ErrorReporter) Interpreter {
 	return Interpreter{
 		errorReporter: errorReporter,
+		environment:   NewEnvironment(),
+		lastValue:     nil,
 	}
 }
 
-func (inter *Interpreter) Interpret(statements []Stmt) error {
+func (inter *Interpreter) Interpret(statements []Stmt) (interface{}, error) {
 	for _, stmt := range statements {
 		inter.execute(stmt)
 	}
-	return nil
+	return inter.lastValue, nil
+}
+
+func (inter *Interpreter) GetLastValue() interface{} {
+	return inter.lastValue
 }
 
 func (inter *Interpreter) execute(stmt Stmt) {
@@ -93,18 +101,25 @@ func isEqual(left interface{}, right interface{}) bool {
 }
 
 func (inter *Interpreter) visitExpressionStmt(stmt ExpressionStmt) interface{} {
-	inter.evaluate(stmt.Expression)
-	return nil
+	inter.lastValue = inter.evaluate(stmt.Expression)
+	return inter.lastValue
 }
 
 func (inter *Interpreter) visitPrintStmt(stmt PrintStmt) interface{} {
 	value := inter.evaluate(stmt.Print)
 	fmt.Println(value)
-	return nil
+	inter.lastValue = value
+	return inter.lastValue
 }
 
 func (inter *Interpreter) visitVarStmt(stmt VarStmt) interface{} {
-	return nil
+	var value interface{} = nil
+	if stmt.Initializer != nil {
+		value = inter.evaluate(stmt.Initializer)
+	}
+	inter.environment.Define(stmt.Name.Lexeme, value)
+	inter.lastValue = value
+	return value
 }
 
 func (inter *Interpreter) visitLiteralExpr(expr LiteralExpr) interface{} {
@@ -218,7 +233,12 @@ func (inter *Interpreter) visitConditionalExpr(expr ConditionalExpr) interface{}
 }
 
 func (inter *Interpreter) visitVariableExpr(expr VariableExpr) interface{} {
-	return nil
+	value, err := inter.environment.Get(expr.Name.Lexeme)
+	if err != nil {
+		inter.errorReporter.Push(expr.getLine(), INTERPRETER_WHERE, err)
+		return nil
+	}
+	return value
 }
 
 func (inter *Interpreter) evaluate(expr Expr) interface{} {
