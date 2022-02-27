@@ -17,9 +17,18 @@ func (env *Environment) Define(name string, value interface{}) {
 }
 
 func (env *Environment) Get(name string) (interface{}, error) {
-	val, exists := env.values[name]
-	if !exists {
-		return 0, fmt.Errorf("undefined variable: %s", name)
+	val, ok := env.values[name]
+	if !ok {
+		return nil, fmt.Errorf("undefined variable: %s", name)
 	}
 	return val, nil
+}
+
+func (env *Environment) Assign(name string, value interface{}) error {
+	_, ok := env.values[name]
+	if !ok {
+		return fmt.Errorf("undefined variable: %s", name)
+	}
+	env.values[name] = value
+	return nil
 }

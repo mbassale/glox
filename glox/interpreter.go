@@ -242,7 +242,9 @@ func (inter *Interpreter) visitVariableExpr(expr VariableExpr) interface{} {
 }
 
 func (inter *Interpreter) visitAssignExpr(expr AssignExpr) interface{} {
-	return nil
+	value := inter.evaluate(expr.Value)
+	inter.environment.Assign(expr.Name.Lexeme, value)
+	return value
 }
 
 func (inter *Interpreter) evaluate(expr Expr) interface{} {

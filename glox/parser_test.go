@@ -6,42 +6,84 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParserExpressions(t *testing.T) {
+func TestParserStatements(t *testing.T) {
 	testCases := []struct {
-		name         string
-		source       string
-		expectedExpr Expr
+		name               string
+		source             string
+		expectedStatements []Stmt
 	}{
-		{"basic operators", "1*2+3/4;", NewBinaryExpr(
-			NewBinaryExpr(
-				NewLiteralExpr(1.0, 1),
-				NewToken(TOKEN_STAR, "*", nil, 1),
-				NewLiteralExpr(2.0, 1),
-			),
-			NewToken(TOKEN_PLUS, "+", nil, 1),
-			NewBinaryExpr(
-				NewLiteralExpr(3.0, 1),
-				NewToken(TOKEN_SLASH, "/", nil, 1),
-				NewLiteralExpr(4.0, 1),
-			),
-		)},
-		{"ternary expression", "2>=1?\"2\"==2?true:false:false;", NewConditionalExpr(
-			NewBinaryExpr(
-				NewLiteralExpr(2.0, 1),
-				NewToken(TOKEN_GREATER_EQUAL, ">=", nil, 1),
-				NewLiteralExpr(1.0, 1),
-			),
-			NewConditionalExpr(
-				NewBinaryExpr(
-					NewLiteralExpr("2", 1),
-					NewToken(TOKEN_EQUAL_EQUAL, "==", nil, 1),
-					NewLiteralExpr(2.0, 1),
+		{
+			"basic operators",
+			"1*2+3/4;",
+			[]Stmt{
+				NewExpressionStmt(
+					NewBinaryExpr(
+						NewBinaryExpr(
+							NewLiteralExpr(1.0, 1),
+							NewToken(TOKEN_STAR, "*", nil, 1),
+							NewLiteralExpr(2.0, 1),
+						),
+						NewToken(TOKEN_PLUS, "+", nil, 1),
+						NewBinaryExpr(
+							NewLiteralExpr(3.0, 1),
+							NewToken(TOKEN_SLASH, "/", nil, 1),
+							NewLiteralExpr(4.0, 1),
+						),
+					),
 				),
-				NewLiteralExpr(true, 1),
-				NewLiteralExpr(false, 1),
-			),
-			NewLiteralExpr(false, 1),
-		)},
+			},
+		},
+		{
+			"ternary expression",
+			"2>=1?\"2\"==2?true:false:false;",
+			[]Stmt{
+				NewExpressionStmt(
+					NewConditionalExpr(
+						NewBinaryExpr(
+							NewLiteralExpr(2.0, 1),
+							NewToken(TOKEN_GREATER_EQUAL, ">=", nil, 1),
+							NewLiteralExpr(1.0, 1),
+						),
+						NewConditionalExpr(
+							NewBinaryExpr(
+								NewLiteralExpr("2", 1),
+								NewToken(TOKEN_EQUAL_EQUAL, "==", nil, 1),
+								NewLiteralExpr(2.0, 1),
+							),
+							NewLiteralExpr(true, 1),
+							NewLiteralExpr(false, 1),
+						),
+						NewLiteralExpr(false, 1),
+					),
+				),
+			},
+		},
+		{
+			"assign expression",
+			"var test=1; test=test*2+1;",
+			[]Stmt{
+				NewVarStmt(
+					NewToken(TOKEN_IDENTIFIER, "test", "test", 1),
+					NewLiteralExpr(1.0, 1),
+				),
+				NewExpressionStmt(
+					NewAssignExpr(
+						NewToken(TOKEN_IDENTIFIER, "test", "test", 1),
+						NewBinaryExpr(
+							NewBinaryExpr(
+								NewVariableExpr(
+									NewToken(TOKEN_IDENTIFIER, "test", "test", 1),
+								),
+								NewToken(TOKEN_STAR, "*", nil, 1),
+								NewLiteralExpr(2.0, 1),
+							),
+							NewToken(TOKEN_PLUS, "+", nil, 1),
+							NewLiteralExpr(1.0, 1),
+						),
+					),
+				),
+			},
+		},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()
@@ -53,11 +95,7 @@ func TestParserExpressions(t *testing.T) {
 		statements := parser.Parse()
 		assert.False(t, errorReporter.HasError())
 		if assert.NotEmpty(t, statements) {
-			if assert.IsType(t, NewExpressionStmt(testCase.expectedExpr), statements[0]) {
-				expressionStmt := statements[0].(ExpressionStmt)
-				currentExpr := expressionStmt.Expression
-				assert.Equal(t, testCase.expectedExpr, currentExpr, testCase.name)
-			}
+			assert.Equal(t, testCase.expectedStatements, statements, testCase.name)
 		}
 	}
 
