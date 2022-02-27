@@ -16,8 +16,8 @@ func TestInterpreterStatements(t *testing.T) {
 		{"operator precedence", "2+3*4-4/2;", 12.0},
 		{"conditional expression, true", "2<=3?3-1:false;", 2.0},
 		{"conditional expression, false", "2==3?3-1:false;", false},
-		{"default variable definition", "var test;", nil},
-		{"simple variable definition", "var test = 2*3;", 6.0},
+		{"default variable declaration", "var test;", nil},
+		{"simple variable declaration", "var test = 2*3;", 6.0},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()
