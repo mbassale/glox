@@ -17,6 +17,15 @@ func (p AstPrinter) Print(statements []Stmt) string {
 	return strings.Join(astStrs, "\n")
 }
 
+func (p AstPrinter) visitBlockStmt(stmt BlockStmt) interface{} {
+	astStrs := []string{}
+	for _, stmt := range stmt.Statements {
+		astStr := "  " + stmt.accept(p).(string)
+		astStrs = append(astStrs, astStr)
+	}
+	return fmt.Sprintf("{\n%s\n}\n", strings.Join(astStrs, "\n"))
+}
+
 func (p AstPrinter) visitExpressionStmt(stmt ExpressionStmt) interface{} {
 	return p.parenthesize("", stmt.Expression) + ";"
 }

@@ -1,6 +1,7 @@
 package glox
 
 type Visitor interface {
+	visitBlockStmt(stmt BlockStmt) interface{}
 	visitExpressionStmt(stmt ExpressionStmt) interface{}
 	visitPrintStmt(stmt PrintStmt) interface{}
 	visitVarStmt(stmt VarStmt) interface{}
@@ -161,6 +162,27 @@ func NewAssignExpr(name Token, value Expr) AssignExpr {
 type Stmt interface {
 	accept(visitor Visitor) interface{}
 	getLine() int
+}
+
+type BlockStmt struct {
+	Statements []Stmt
+}
+
+func (stmt BlockStmt) accept(visitor Visitor) interface{} {
+	return visitor.visitBlockStmt(stmt)
+}
+
+func (stmt BlockStmt) getLine() int {
+	if len(stmt.Statements) > 0 {
+		return stmt.Statements[0].getLine()
+	}
+	return 0
+}
+
+func NewBlockStmt(statements []Stmt) BlockStmt {
+	return BlockStmt{
+		Statements: statements,
+	}
 }
 
 type ExpressionStmt struct {

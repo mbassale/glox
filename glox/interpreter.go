@@ -100,6 +100,11 @@ func isEqual(left interface{}, right interface{}) bool {
 	return reflect.DeepEqual(left, right)
 }
 
+func (inter *Interpreter) visitBlockStmt(stmt BlockStmt) interface{} {
+	inter.executeBlock(stmt.Statements, NewEnvironmentWithEnclosing(&inter.environment))
+	return nil
+}
+
 func (inter *Interpreter) visitExpressionStmt(stmt ExpressionStmt) interface{} {
 	inter.lastValue = inter.evaluate(stmt.Expression)
 	return inter.lastValue
@@ -249,6 +254,15 @@ func (inter *Interpreter) visitAssignExpr(expr AssignExpr) interface{} {
 
 func (inter *Interpreter) evaluate(expr Expr) interface{} {
 	return expr.accept(inter)
+}
+
+func (inter *Interpreter) executeBlock(statements []Stmt, localEnv Environment) {
+	previousEnv := inter.environment
+	inter.environment = localEnv
+	for _, stmt := range statements {
+		inter.execute(stmt)
+	}
+	inter.environment = previousEnv
 }
 
 func (inter *Interpreter) checkNumberOperands(expr Expr, operator Token, left interface{}, right interface{}) (float64, float64, error) {
