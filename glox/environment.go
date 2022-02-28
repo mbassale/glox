@@ -3,12 +3,21 @@ package glox
 import "fmt"
 
 type Environment struct {
-	values map[string]interface{}
+	values    map[string]interface{}
+	enclosing *Environment
 }
 
 func NewEnvironment() Environment {
 	return Environment{
-		values: map[string]interface{}{},
+		values:    map[string]interface{}{},
+		enclosing: nil,
+	}
+}
+
+func NewEnvironmentWithEnclosing(enclosing *Environment) Environment {
+	return Environment{
+		values:    map[string]interface{}{},
+		enclosing: enclosing,
 	}
 }
 
@@ -19,6 +28,9 @@ func (env *Environment) Define(name string, value interface{}) {
 func (env *Environment) Get(name string) (interface{}, error) {
 	val, ok := env.values[name]
 	if !ok {
+		if env.enclosing != nil {
+			return env.enclosing.Get(name)
+		}
 		return nil, fmt.Errorf("undefined variable: %s", name)
 	}
 	return val, nil
@@ -27,6 +39,9 @@ func (env *Environment) Get(name string) (interface{}, error) {
 func (env *Environment) Assign(name string, value interface{}) error {
 	_, ok := env.values[name]
 	if !ok {
+		if env.enclosing != nil {
+			return env.enclosing.Assign(name, value)
+		}
 		return fmt.Errorf("undefined variable: %s", name)
 	}
 	env.values[name] = value
