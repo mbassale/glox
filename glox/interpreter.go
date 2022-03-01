@@ -10,14 +10,15 @@ const INTERPRETER_WHERE = "interpreter"
 
 type Interpreter struct {
 	errorReporter ErrorReporter
-	environment   Environment
+	environment   *Environment
 	lastValue     interface{}
 }
 
 func NewInterpreter(errorReporter ErrorReporter) Interpreter {
+	newEnvironment := NewEnvironment()
 	return Interpreter{
 		errorReporter: errorReporter,
-		environment:   NewEnvironment(),
+		environment:   &newEnvironment,
 		lastValue:     nil,
 	}
 }
@@ -101,7 +102,8 @@ func isEqual(left interface{}, right interface{}) bool {
 }
 
 func (inter *Interpreter) visitBlockStmt(stmt BlockStmt) interface{} {
-	inter.executeBlock(stmt.Statements, NewEnvironmentWithEnclosing(&inter.environment))
+	localEnv := NewEnvironmentWithEnclosing(inter.environment)
+	inter.executeBlock(stmt.Statements, &localEnv)
 	return nil
 }
 
@@ -256,7 +258,7 @@ func (inter *Interpreter) evaluate(expr Expr) interface{} {
 	return expr.accept(inter)
 }
 
-func (inter *Interpreter) executeBlock(statements []Stmt, localEnv Environment) {
+func (inter *Interpreter) executeBlock(statements []Stmt, localEnv *Environment) {
 	previousEnv := inter.environment
 	inter.environment = localEnv
 	for _, stmt := range statements {
