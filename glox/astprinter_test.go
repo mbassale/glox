@@ -33,6 +33,15 @@ func TestAstPrinterPrint(t *testing.T) {
 			),
 			"(var test (+ (- 42.42) (group 2)));",
 		},
+		{
+			"If-Then-Else",
+			NewIfStmt(
+				NewLiteralExpr(true, 1),
+				NewPrintStmt(NewLiteralExpr("then", 1)),
+				NewPrintStmt(NewLiteralExpr("else", 2)),
+			),
+			"(if true)\n(print then);else\n(print else);",
+		},
 	}
 	for _, testCase := range statements {
 		astPrinter := AstPrinter{}

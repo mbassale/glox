@@ -18,6 +18,10 @@ func TestInterpreterStatements(t *testing.T) {
 		{"conditional expression, false", "2==3?3-1:false;", false},
 		{"default variable declaration", "var test;", nil},
 		{"simple variable declaration", "var test = 2*3;", 6.0},
+		{"if-true-then", "if(2<3){var test=1;}", 1.0},
+		{"if-false-then", "if(2>3){var test=1;}", nil},
+		{"if-true-then-false-else", "if(2<3){var test=1;}else{var test=2;}", 1.0},
+		{"if-false-then-true-else", "if(2>3){var test=1;}else{var test=2;}", 2.0},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()

@@ -84,6 +84,25 @@ func TestParserStatements(t *testing.T) {
 				),
 			},
 		},
+		{
+			"If-Then-Else Stmt",
+			"if (true) { print 1; } else { print 2; }",
+			[]Stmt{
+				NewIfStmt(
+					NewLiteralExpr(true, 1),
+					NewBlockStmt([]Stmt{
+						NewPrintStmt(
+							NewLiteralExpr(1.0, 1),
+						),
+					}),
+					NewBlockStmt([]Stmt{
+						NewPrintStmt(
+							NewLiteralExpr(2.0, 1),
+						),
+					}),
+				),
+			},
+		},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()

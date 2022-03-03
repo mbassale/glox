@@ -129,6 +129,20 @@ func (inter *Interpreter) visitVarStmt(stmt VarStmt) interface{} {
 	return value
 }
 
+func (inter *Interpreter) visitIfStmt(stmt IfStmt) interface{} {
+	conditionVal, err := isTruthy(inter.evaluate(stmt.Condition))
+	if err != nil {
+		inter.errorReporter.Push(stmt.Condition.getLine(), INTERPRETER_WHERE, err)
+		return nil
+	}
+	if conditionVal {
+		inter.execute(stmt.ThenBranch)
+	} else if stmt.ElseBranch != nil {
+		inter.execute(stmt.ElseBranch)
+	}
+	return nil
+}
+
 func (inter *Interpreter) visitLiteralExpr(expr LiteralExpr) interface{} {
 	return expr.Value
 }

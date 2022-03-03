@@ -5,6 +5,7 @@ type Visitor interface {
 	visitExpressionStmt(stmt ExpressionStmt) interface{}
 	visitPrintStmt(stmt PrintStmt) interface{}
 	visitVarStmt(stmt VarStmt) interface{}
+	visitIfStmt(stmt IfStmt) interface{}
 	visitBinaryExpr(expr BinaryExpr) interface{}
 	visitConditionalExpr(expr ConditionalExpr) interface{}
 	visitGroupingExpr(expr GroupingExpr) interface{}
@@ -238,5 +239,27 @@ func NewVarStmt(name Token, initializer Expr) VarStmt {
 	return VarStmt{
 		Name:        name,
 		Initializer: initializer,
+	}
+}
+
+type IfStmt struct {
+	Condition  Expr
+	ThenBranch Stmt
+	ElseBranch Stmt
+}
+
+func (stmt IfStmt) accept(visitor Visitor) interface{} {
+	return visitor.visitIfStmt(stmt)
+}
+
+func (stmt IfStmt) getLine() int {
+	return stmt.Condition.getLine()
+}
+
+func NewIfStmt(condition Expr, thenBranch Stmt, elseBranch Stmt) IfStmt {
+	return IfStmt{
+		Condition:  condition,
+		ThenBranch: thenBranch,
+		ElseBranch: elseBranch,
 	}
 }

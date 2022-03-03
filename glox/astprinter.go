@@ -38,6 +38,20 @@ func (p AstPrinter) visitVarStmt(stmt VarStmt) interface{} {
 	return p.parenthesize("var "+stmt.Name.Lexeme, stmt.Initializer) + ";"
 }
 
+func (p AstPrinter) visitIfStmt(stmt IfStmt) interface{} {
+	astStr := p.parenthesize("if", stmt.Condition) + "\n"
+	if stmt.ThenBranch != nil {
+		astStr += stmt.ThenBranch.accept(p).(string)
+	} else {
+		astStr += ";\n"
+	}
+	if stmt.ElseBranch != nil {
+		astStr += "else\n"
+		astStr += stmt.ElseBranch.accept(p).(string)
+	}
+	return astStr
+}
+
 func (p AstPrinter) visitBinaryExpr(expr BinaryExpr) interface{} {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
