@@ -249,10 +249,10 @@ func (p *Parser) assignment() (Expr, error) {
 }
 
 /*
- * conditionalExpression -> equality | ( equality "?" expression ":" expression )
+ * conditionalExpression -> logicOr | ( logicOr "?" expression ":" expression )
  */
 func (p *Parser) conditionalExpression() (Expr, error) {
-	expr, err := p.equality()
+	expr, err := p.logicOr()
 	if err != nil {
 		return nil, err
 	}
@@ -272,6 +272,48 @@ func (p *Parser) conditionalExpression() (Expr, error) {
 			// missing right side expression
 			return nil, NewParseError("Expecting ':' in conditional expression", p.tokens[p.current])
 		}
+	}
+
+	return expr, nil
+}
+
+/*
+ * logicOr -> logicAnd ( "or" logicAnd )* ;
+ */
+func (p *Parser) logicOr() (Expr, error) {
+	expr, err := p.logicAnd()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(TOKEN_OR) {
+		operator := p.previous()
+		right, err := p.logicAnd()
+		if err != nil {
+			return nil, err
+		}
+		expr = NewLogicalExpr(expr, operator, right)
+	}
+
+	return expr, nil
+}
+
+/*
+ * logicAnd -> equality ( "and" equality )* ;
+ */
+func (p *Parser) logicAnd() (Expr, error) {
+	expr, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(TOKEN_AND) {
+		operator := p.previous()
+		right, err := p.equality()
+		if err != nil {
+			return nil, err
+		}
+		expr = NewLogicalExpr(expr, operator, right)
 	}
 
 	return expr, nil

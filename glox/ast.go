@@ -10,6 +10,7 @@ type Visitor interface {
 	visitConditionalExpr(expr ConditionalExpr) interface{}
 	visitGroupingExpr(expr GroupingExpr) interface{}
 	visitLiteralExpr(expr LiteralExpr) interface{}
+	visitLogicalExpr(expr LogicalExpr) interface{}
 	visitUnaryExpr(expr UnaryExpr) interface{}
 	visitVariableExpr(expr VariableExpr) interface{}
 	visitAssignExpr(expr AssignExpr) interface{}
@@ -99,6 +100,28 @@ func NewLiteralExpr(value interface{}, line int) LiteralExpr {
 	return LiteralExpr{
 		Value: value,
 		Line:  line,
+	}
+}
+
+type LogicalExpr struct {
+	Left     Expr
+	Operator Token
+	Right    Expr
+}
+
+func (e LogicalExpr) accept(visitor Visitor) interface{} {
+	return visitor.visitLogicalExpr(e)
+}
+
+func (e LogicalExpr) getLine() int {
+	return e.Operator.Line
+}
+
+func NewLogicalExpr(left Expr, operator Token, right Expr) LogicalExpr {
+	return LogicalExpr{
+		Left:     left,
+		Operator: operator,
+		Right:    right,
 	}
 }
 

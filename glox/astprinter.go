@@ -71,6 +71,10 @@ func (p AstPrinter) visitLiteralExpr(expr LiteralExpr) interface{} {
 	return fmt.Sprintf("%v", expr.Value)
 }
 
+func (p AstPrinter) visitLogicalExpr(expr LogicalExpr) interface{} {
+	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
+}
+
 func (p AstPrinter) visitUnaryExpr(expr UnaryExpr) interface{} {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
 }

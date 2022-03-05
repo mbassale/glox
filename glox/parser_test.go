@@ -103,6 +103,45 @@ func TestParserStatements(t *testing.T) {
 				),
 			},
 		},
+		{
+			"If(OrLogicalExpr)-Then-Else",
+			"if (3<1 or 1>=3 or 1==1) { print 1; } else { print 2; }",
+			[]Stmt{
+				NewIfStmt(
+					NewLogicalExpr(
+						NewLogicalExpr(
+							NewBinaryExpr(
+								NewLiteralExpr(3.0, 1),
+								NewToken(TOKEN_LESS, "<", nil, 1),
+								NewLiteralExpr(1.0, 1),
+							),
+							NewToken(TOKEN_OR, "or", nil, 1),
+							NewBinaryExpr(
+								NewLiteralExpr(1.0, 1),
+								NewToken(TOKEN_GREATER_EQUAL, ">=", nil, 1),
+								NewLiteralExpr(3.0, 1),
+							),
+						),
+						NewToken(TOKEN_OR, "or", nil, 1),
+						NewBinaryExpr(
+							NewLiteralExpr(1.0, 1),
+							NewToken(TOKEN_EQUAL_EQUAL, "==", nil, 1),
+							NewLiteralExpr(1.0, 1),
+						),
+					),
+					NewBlockStmt([]Stmt{
+						NewPrintStmt(
+							NewLiteralExpr(1.0, 1),
+						),
+					}),
+					NewBlockStmt([]Stmt{
+						NewPrintStmt(
+							NewLiteralExpr(2.0, 1),
+						),
+					}),
+				),
+			},
+		},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()

@@ -151,6 +151,10 @@ func (inter *Interpreter) visitGroupingExpr(expr GroupingExpr) interface{} {
 	return inter.evaluate(expr.Expression)
 }
 
+func (inter *Interpreter) visitLogicalExpr(expr LogicalExpr) interface{} {
+	return nil
+}
+
 func (inter *Interpreter) visitUnaryExpr(expr UnaryExpr) interface{} {
 	right := inter.evaluate(expr.Right)
 
