@@ -183,7 +183,7 @@ func (p *Parser) expressionStatement() (Stmt, error) {
 }
 
 /*
- *
+ * ifStatement -> "if" "(" expression ")" statement ( "else" statement )? ;
  */
 func (p *Parser) ifStatement() (Stmt, error) {
 	_, err := p.consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.")
