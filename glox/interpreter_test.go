@@ -22,6 +22,9 @@ func TestInterpreterStatements(t *testing.T) {
 		{"if-false-then", "if(2>3){var test=1;}", nil},
 		{"if-true-then-false-else", "if(2<3){var test=1;}else{var test=2;}", 1.0},
 		{"if-false-then-true-else", "if(2>3){var test=1;}else{var test=2;}", 2.0},
+		{"if(logicalExpr)-true-then-else", "if(3>=3 and 2==2 and 3<4 and true==true){var test=1;}else{var test=2;}", 1.0},
+		{"if(logicalExpr)-true-then-else", "if(3>3 or 2==1 or 3>4 or true==true){var test=1;}else{var test=2;}", 1.0},
+		{"if(logicalExpr)-true-then-else", "if(3>3 or 2==1 or 3>4 or (true==false)){var test=1;}else{var test=2;}", 2.0},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()

@@ -152,7 +152,22 @@ func (inter *Interpreter) visitGroupingExpr(expr GroupingExpr) interface{} {
 }
 
 func (inter *Interpreter) visitLogicalExpr(expr LogicalExpr) interface{} {
-	return nil
+	left := inter.evaluate(expr.Left)
+	leftVal, err := isTruthy(left)
+	if err != nil {
+		inter.errorReporter.Push(expr.Left.getLine(), INTERPRETER_WHERE, err)
+		return nil
+	}
+	if expr.Operator.Type == TOKEN_OR {
+		if leftVal {
+			return left
+		}
+	} else {
+		if !leftVal {
+			return leftVal
+		}
+	}
+	return inter.evaluate(expr.Right)
 }
 
 func (inter *Interpreter) visitUnaryExpr(expr UnaryExpr) interface{} {
