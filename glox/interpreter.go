@@ -144,6 +144,16 @@ func (inter *Interpreter) visitIfStmt(stmt IfStmt) interface{} {
 }
 
 func (inter *Interpreter) visitWhileStmt(stmt WhileStmt) interface{} {
+	for {
+		keepRunning, err := isTruthy(inter.evaluate(stmt.Condition))
+		if err != nil {
+			return nil
+		}
+		if !keepRunning {
+			break
+		}
+		inter.execute(stmt.Body)
+	}
 	return nil
 }
 
