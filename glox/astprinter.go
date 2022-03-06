@@ -11,101 +11,105 @@ type AstPrinter struct {
 func (p AstPrinter) Print(statements []Stmt) string {
 	astStrs := []string{}
 	for _, stmt := range statements {
-		astStr := stmt.accept(p).(string)
-		astStrs = append(astStrs, astStr)
+		astStr, _ := stmt.accept(p)
+		astStrs = append(astStrs, astStr.(string))
 	}
 	return strings.Join(astStrs, "\n")
 }
 
-func (p AstPrinter) visitBlockStmt(stmt BlockStmt) interface{} {
+func (p AstPrinter) visitBlockStmt(stmt BlockStmt) (interface{}, error) {
 	astStrs := []string{}
 	for _, stmt := range stmt.Statements {
-		astStr := "  " + stmt.accept(p).(string)
+		ast, _ := stmt.accept(p)
+		astStr := "  " + ast.(string)
 		astStrs = append(astStrs, astStr)
 	}
-	return fmt.Sprintf("{\n%s\n}\n", strings.Join(astStrs, "\n"))
+	return fmt.Sprintf("{\n%s\n}\n", strings.Join(astStrs, "\n")), nil
 }
 
-func (p AstPrinter) visitExpressionStmt(stmt ExpressionStmt) interface{} {
-	return p.parenthesize("", stmt.Expression) + ";"
+func (p AstPrinter) visitExpressionStmt(stmt ExpressionStmt) (interface{}, error) {
+	return p.parenthesize("", stmt.Expression) + ";", nil
 }
 
-func (p AstPrinter) visitPrintStmt(stmt PrintStmt) interface{} {
-	return p.parenthesize("print", stmt.Print) + ";"
+func (p AstPrinter) visitPrintStmt(stmt PrintStmt) (interface{}, error) {
+	return p.parenthesize("print", stmt.Print) + ";", nil
 }
 
-func (p AstPrinter) visitVarStmt(stmt VarStmt) interface{} {
-	return p.parenthesize("var "+stmt.Name.Lexeme, stmt.Initializer) + ";"
+func (p AstPrinter) visitVarStmt(stmt VarStmt) (interface{}, error) {
+	return p.parenthesize("var "+stmt.Name.Lexeme, stmt.Initializer) + ";", nil
 }
 
-func (p AstPrinter) visitIfStmt(stmt IfStmt) interface{} {
+func (p AstPrinter) visitIfStmt(stmt IfStmt) (interface{}, error) {
 	astStr := p.parenthesize("if", stmt.Condition) + "\n"
 	if stmt.ThenBranch != nil {
-		astStr += stmt.ThenBranch.accept(p).(string)
+		ast, _ := stmt.ThenBranch.accept(p)
+		astStr += ast.(string)
 	} else {
 		astStr += ";\n"
 	}
 	if stmt.ElseBranch != nil {
+		ast, _ := stmt.ElseBranch.accept(p)
 		astStr += "\nelse\n"
-		astStr += stmt.ElseBranch.accept(p).(string)
+		astStr += ast.(string)
 	}
-	return astStr
+	return astStr, nil
 }
 
-func (p AstPrinter) visitWhileStmt(stmt WhileStmt) interface{} {
-	return p.parenthesize("while", stmt.Condition) + "\n" +
-		stmt.Body.accept(p).(string)
+func (p AstPrinter) visitWhileStmt(stmt WhileStmt) (interface{}, error) {
+	ast, _ := stmt.Body.accept(p)
+	return p.parenthesize("while", stmt.Condition) + "\n" + ast.(string), nil
 }
 
-func (p AstPrinter) visitBreakStmt(stmt BreakStmt) interface{} {
-	return p.parenthesize("break") + ";"
+func (p AstPrinter) visitBreakStmt(stmt BreakStmt) (interface{}, error) {
+	return p.parenthesize("break") + ";", nil
 }
 
-func (p AstPrinter) visitContinueStmt(stmt ContinueStmt) interface{} {
-	return p.parenthesize("continue") + ";"
+func (p AstPrinter) visitContinueStmt(stmt ContinueStmt) (interface{}, error) {
+	return p.parenthesize("continue") + ";", nil
 }
 
-func (p AstPrinter) visitBinaryExpr(expr BinaryExpr) interface{} {
-	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
+func (p AstPrinter) visitBinaryExpr(expr BinaryExpr) (interface{}, error) {
+	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right), nil
 }
 
-func (p AstPrinter) visitConditionalExpr(expr ConditionalExpr) interface{} {
-	return p.parenthesize("?", expr.Condition, expr.Left, expr.Right)
+func (p AstPrinter) visitConditionalExpr(expr ConditionalExpr) (interface{}, error) {
+	return p.parenthesize("?", expr.Condition, expr.Left, expr.Right), nil
 }
 
-func (p AstPrinter) visitGroupingExpr(expr GroupingExpr) interface{} {
-	return p.parenthesize("group", expr.Expression)
+func (p AstPrinter) visitGroupingExpr(expr GroupingExpr) (interface{}, error) {
+	return p.parenthesize("group", expr.Expression), nil
 }
 
-func (p AstPrinter) visitLiteralExpr(expr LiteralExpr) interface{} {
+func (p AstPrinter) visitLiteralExpr(expr LiteralExpr) (interface{}, error) {
 	if expr.Value == nil {
-		return nil
+		return nil, nil
 	}
-	return fmt.Sprintf("%v", expr.Value)
+	return fmt.Sprintf("%v", expr.Value), nil
 }
 
-func (p AstPrinter) visitLogicalExpr(expr LogicalExpr) interface{} {
-	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
+func (p AstPrinter) visitLogicalExpr(expr LogicalExpr) (interface{}, error) {
+	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right), nil
 }
 
-func (p AstPrinter) visitUnaryExpr(expr UnaryExpr) interface{} {
-	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
+func (p AstPrinter) visitUnaryExpr(expr UnaryExpr) (interface{}, error) {
+	return p.parenthesize(expr.Operator.Lexeme, expr.Right), nil
 }
 
-func (p AstPrinter) visitVariableExpr(expr VariableExpr) interface{} {
-	return expr.Name.Lexeme
+func (p AstPrinter) visitVariableExpr(expr VariableExpr) (interface{}, error) {
+	return expr.Name.Lexeme, nil
 }
 
-func (p AstPrinter) visitAssignExpr(expr AssignExpr) interface{} {
-	return p.parenthesize("= "+expr.Name.Lexeme, expr.Value)
+func (p AstPrinter) visitAssignExpr(expr AssignExpr) (interface{}, error) {
+	return p.parenthesize("= "+expr.Name.Lexeme, expr.Value), nil
 }
 
 func (p AstPrinter) parenthesize(name string, exprs ...interface{}) string {
 	var builder string
 	builder += "(" + name
 	for _, expr := range exprs {
+		ast, _ := expr.(Expr).accept(p)
 		builder += " "
-		builder += fmt.Sprintf("%v", expr.(Expr).accept(p))
+		builder += fmt.Sprintf("%v", ast.(string))
 	}
 	builder += ")"
 	return builder

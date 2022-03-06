@@ -1,26 +1,26 @@
 package glox
 
 type Visitor interface {
-	visitBlockStmt(stmt BlockStmt) interface{}
-	visitExpressionStmt(stmt ExpressionStmt) interface{}
-	visitPrintStmt(stmt PrintStmt) interface{}
-	visitVarStmt(stmt VarStmt) interface{}
-	visitIfStmt(stmt IfStmt) interface{}
-	visitWhileStmt(stmt WhileStmt) interface{}
-	visitBreakStmt(stmt BreakStmt) interface{}
-	visitContinueStmt(stmt ContinueStmt) interface{}
-	visitBinaryExpr(expr BinaryExpr) interface{}
-	visitConditionalExpr(expr ConditionalExpr) interface{}
-	visitGroupingExpr(expr GroupingExpr) interface{}
-	visitLiteralExpr(expr LiteralExpr) interface{}
-	visitLogicalExpr(expr LogicalExpr) interface{}
-	visitUnaryExpr(expr UnaryExpr) interface{}
-	visitVariableExpr(expr VariableExpr) interface{}
-	visitAssignExpr(expr AssignExpr) interface{}
+	visitBlockStmt(stmt BlockStmt) (interface{}, error)
+	visitExpressionStmt(stmt ExpressionStmt) (interface{}, error)
+	visitPrintStmt(stmt PrintStmt) (interface{}, error)
+	visitVarStmt(stmt VarStmt) (interface{}, error)
+	visitIfStmt(stmt IfStmt) (interface{}, error)
+	visitWhileStmt(stmt WhileStmt) (interface{}, error)
+	visitBreakStmt(stmt BreakStmt) (interface{}, error)
+	visitContinueStmt(stmt ContinueStmt) (interface{}, error)
+	visitBinaryExpr(expr BinaryExpr) (interface{}, error)
+	visitConditionalExpr(expr ConditionalExpr) (interface{}, error)
+	visitGroupingExpr(expr GroupingExpr) (interface{}, error)
+	visitLiteralExpr(expr LiteralExpr) (interface{}, error)
+	visitLogicalExpr(expr LogicalExpr) (interface{}, error)
+	visitUnaryExpr(expr UnaryExpr) (interface{}, error)
+	visitVariableExpr(expr VariableExpr) (interface{}, error)
+	visitAssignExpr(expr AssignExpr) (interface{}, error)
 }
 
 type Expr interface {
-	accept(visitor Visitor) interface{}
+	accept(visitor Visitor) (interface{}, error)
 	getLine() int
 }
 
@@ -30,7 +30,7 @@ type BinaryExpr struct {
 	Right    Expr
 }
 
-func (e BinaryExpr) accept(visitor Visitor) interface{} {
+func (e BinaryExpr) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitBinaryExpr(e)
 }
 
@@ -52,7 +52,7 @@ type ConditionalExpr struct {
 	Right     Expr
 }
 
-func (e ConditionalExpr) accept(visitor Visitor) interface{} {
+func (e ConditionalExpr) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitConditionalExpr(e)
 }
 
@@ -72,7 +72,7 @@ type GroupingExpr struct {
 	Expression Expr
 }
 
-func (e GroupingExpr) accept(visitor Visitor) interface{} {
+func (e GroupingExpr) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitGroupingExpr(e)
 }
 
@@ -91,7 +91,7 @@ type LiteralExpr struct {
 	Line  int
 }
 
-func (e LiteralExpr) accept(visitor Visitor) interface{} {
+func (e LiteralExpr) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitLiteralExpr(e)
 }
 
@@ -112,7 +112,7 @@ type LogicalExpr struct {
 	Right    Expr
 }
 
-func (e LogicalExpr) accept(visitor Visitor) interface{} {
+func (e LogicalExpr) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitLogicalExpr(e)
 }
 
@@ -133,7 +133,7 @@ type UnaryExpr struct {
 	Right    Expr
 }
 
-func (e UnaryExpr) accept(visitor Visitor) interface{} {
+func (e UnaryExpr) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitUnaryExpr(e)
 }
 
@@ -152,7 +152,7 @@ type VariableExpr struct {
 	Name Token
 }
 
-func (e VariableExpr) accept(visitor Visitor) interface{} {
+func (e VariableExpr) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitVariableExpr(e)
 }
 
@@ -171,7 +171,7 @@ type AssignExpr struct {
 	Value Expr
 }
 
-func (e AssignExpr) accept(visitor Visitor) interface{} {
+func (e AssignExpr) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitAssignExpr(e)
 }
 
@@ -187,7 +187,7 @@ func NewAssignExpr(name Token, value Expr) AssignExpr {
 }
 
 type Stmt interface {
-	accept(visitor Visitor) interface{}
+	accept(visitor Visitor) (interface{}, error)
 	getLine() int
 }
 
@@ -195,7 +195,7 @@ type BlockStmt struct {
 	Statements []Stmt
 }
 
-func (stmt BlockStmt) accept(visitor Visitor) interface{} {
+func (stmt BlockStmt) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitBlockStmt(stmt)
 }
 
@@ -216,7 +216,7 @@ type ExpressionStmt struct {
 	Expression Expr
 }
 
-func (stmt ExpressionStmt) accept(visitor Visitor) interface{} {
+func (stmt ExpressionStmt) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitExpressionStmt(stmt)
 }
 
@@ -234,7 +234,7 @@ type PrintStmt struct {
 	Print Expr
 }
 
-func (stmt PrintStmt) accept(visitor Visitor) interface{} {
+func (stmt PrintStmt) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitPrintStmt(stmt)
 }
 
@@ -253,7 +253,7 @@ type VarStmt struct {
 	Initializer Expr
 }
 
-func (stmt VarStmt) accept(visitor Visitor) interface{} {
+func (stmt VarStmt) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitVarStmt(stmt)
 }
 
@@ -274,7 +274,7 @@ type IfStmt struct {
 	ElseBranch Stmt
 }
 
-func (stmt IfStmt) accept(visitor Visitor) interface{} {
+func (stmt IfStmt) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitIfStmt(stmt)
 }
 
@@ -295,7 +295,7 @@ type WhileStmt struct {
 	Body      Stmt
 }
 
-func (stmt WhileStmt) accept(visitor Visitor) interface{} {
+func (stmt WhileStmt) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitWhileStmt(stmt)
 }
 
@@ -314,7 +314,7 @@ type BreakStmt struct {
 	Token Token
 }
 
-func (stmt BreakStmt) accept(visitor Visitor) interface{} {
+func (stmt BreakStmt) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitBreakStmt(stmt)
 }
 
@@ -332,7 +332,7 @@ type ContinueStmt struct {
 	Token Token
 }
 
-func (stmt ContinueStmt) accept(visitor Visitor) interface{} {
+func (stmt ContinueStmt) accept(visitor Visitor) (interface{}, error) {
 	return visitor.visitContinueStmt(stmt)
 }
 

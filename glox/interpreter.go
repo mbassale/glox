@@ -30,8 +30,8 @@ func (inter *Interpreter) Interpret(statements []Stmt) (interface{}, error) {
 	return inter.lastValue, nil
 }
 
-func (inter *Interpreter) GetLastValue() interface{} {
-	return inter.lastValue
+func (inter *Interpreter) GetLastValue() (interface{}, error) {
+	return inter.lastValue, nil
 }
 
 func (inter *Interpreter) execute(stmt Stmt) {
@@ -101,192 +101,210 @@ func isEqual(left interface{}, right interface{}) bool {
 	return reflect.DeepEqual(left, right)
 }
 
-func (inter *Interpreter) visitBlockStmt(stmt BlockStmt) interface{} {
+func (inter *Interpreter) visitBlockStmt(stmt BlockStmt) (interface{}, error) {
 	localEnv := NewEnvironmentWithEnclosing(inter.environment)
 	inter.executeBlock(stmt.Statements, &localEnv)
-	return nil
+	return nil, nil
 }
 
-func (inter *Interpreter) visitExpressionStmt(stmt ExpressionStmt) interface{} {
-	inter.lastValue = inter.evaluate(stmt.Expression)
-	return inter.lastValue
+func (inter *Interpreter) visitExpressionStmt(stmt ExpressionStmt) (interface{}, error) {
+	inter.lastValue, _ = inter.evaluate(stmt.Expression)
+	return inter.lastValue, nil
 }
 
-func (inter *Interpreter) visitPrintStmt(stmt PrintStmt) interface{} {
-	value := inter.evaluate(stmt.Print)
+func (inter *Interpreter) visitPrintStmt(stmt PrintStmt) (interface{}, error) {
+	value, _ := inter.evaluate(stmt.Print)
 	fmt.Println(value)
 	inter.lastValue = value
-	return inter.lastValue
+	return inter.lastValue, nil
 }
 
-func (inter *Interpreter) visitVarStmt(stmt VarStmt) interface{} {
+func (inter *Interpreter) visitVarStmt(stmt VarStmt) (interface{}, error) {
 	var value interface{} = nil
 	if stmt.Initializer != nil {
-		value = inter.evaluate(stmt.Initializer)
+		value, _ = inter.evaluate(stmt.Initializer)
 	}
 	inter.environment.Define(stmt.Name.Lexeme, value)
 	inter.lastValue = value
-	return value
+	return value, nil
 }
 
-func (inter *Interpreter) visitIfStmt(stmt IfStmt) interface{} {
-	conditionVal, err := isTruthy(inter.evaluate(stmt.Condition))
+func (inter *Interpreter) visitIfStmt(stmt IfStmt) (interface{}, error) {
+	evalResult, err := inter.evaluate(stmt.Condition)
+	if err != nil {
+		return nil, err
+	}
+	conditionVal, err := isTruthy(evalResult)
 	if err != nil {
 		inter.errorReporter.Push(stmt.Condition.getLine(), INTERPRETER_WHERE, err)
-		return nil
+		return nil, err
 	}
 	if conditionVal {
 		inter.execute(stmt.ThenBranch)
 	} else if stmt.ElseBranch != nil {
 		inter.execute(stmt.ElseBranch)
 	}
-	return nil
+	return nil, nil
 }
 
-func (inter *Interpreter) visitWhileStmt(stmt WhileStmt) interface{} {
+func (inter *Interpreter) visitWhileStmt(stmt WhileStmt) (interface{}, error) {
 	for {
-		keepRunning, err := isTruthy(inter.evaluate(stmt.Condition))
+		evalResult, err := inter.evaluate(stmt.Condition)
 		if err != nil {
-			return nil
+			return nil, err
+		}
+		keepRunning, err := isTruthy(evalResult)
+		if err != nil {
+			return nil, err
 		}
 		if !keepRunning {
 			break
 		}
 		inter.execute(stmt.Body)
 	}
-	return nil
+	return nil, nil
 }
 
-func (inter *Interpreter) visitBreakStmt(stmt BreakStmt) interface{} {
-	return nil
+func (inter *Interpreter) visitBreakStmt(stmt BreakStmt) (interface{}, error) {
+	return nil, nil
 }
 
-func (inter *Interpreter) visitContinueStmt(stmt ContinueStmt) interface{} {
-	return nil
+func (inter *Interpreter) visitContinueStmt(stmt ContinueStmt) (interface{}, error) {
+	return nil, nil
 }
 
-func (inter *Interpreter) visitLiteralExpr(expr LiteralExpr) interface{} {
-	return expr.Value
+func (inter *Interpreter) visitLiteralExpr(expr LiteralExpr) (interface{}, error) {
+	return expr.Value, nil
 }
 
-func (inter *Interpreter) visitGroupingExpr(expr GroupingExpr) interface{} {
+func (inter *Interpreter) visitGroupingExpr(expr GroupingExpr) (interface{}, error) {
 	return inter.evaluate(expr.Expression)
 }
 
-func (inter *Interpreter) visitLogicalExpr(expr LogicalExpr) interface{} {
-	left := inter.evaluate(expr.Left)
+func (inter *Interpreter) visitLogicalExpr(expr LogicalExpr) (interface{}, error) {
+	left, err := inter.evaluate(expr.Left)
+	if err != nil {
+		return nil, err
+	}
 	leftVal, err := isTruthy(left)
 	if err != nil {
 		inter.errorReporter.Push(expr.Left.getLine(), INTERPRETER_WHERE, err)
-		return nil
+		return nil, err
 	}
 	if expr.Operator.Type == TOKEN_OR {
 		if leftVal {
-			return left
+			return left, nil
 		}
 	} else {
 		if !leftVal {
-			return leftVal
+			return leftVal, nil
 		}
 	}
 	return inter.evaluate(expr.Right)
 }
 
-func (inter *Interpreter) visitUnaryExpr(expr UnaryExpr) interface{} {
-	right := inter.evaluate(expr.Right)
+func (inter *Interpreter) visitUnaryExpr(expr UnaryExpr) (interface{}, error) {
+	right, err := inter.evaluate(expr.Right)
+	if err != nil {
+		return nil, err
+	}
 
 	switch expr.Operator.Type {
 	case TOKEN_BANG:
-		val, _ := isTruthy(right)
-		return val
+		val, err := isTruthy(right)
+		return val, err
 	case TOKEN_MINUS:
 		val, err := anyToFloat64(right)
-		if err != nil {
-			inter.errorReporter.Error(expr.Operator.Line, err.Error())
-			return nil
-		}
-		return val
+		return val, err
 	}
 
 	// unreachable
-	return nil
+	return nil, nil
 }
 
-func (inter *Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {
-	left := inter.evaluate(expr.Left)
-	right := inter.evaluate(expr.Right)
+func (inter *Interpreter) visitBinaryExpr(expr BinaryExpr) (interface{}, error) {
+	left, err := inter.evaluate(expr.Left)
+	if err != nil {
+		return nil, err
+	}
+	right, err := inter.evaluate(expr.Right)
+	if err != nil {
+		return nil, err
+	}
 
 	switch expr.Operator.Type {
 	case TOKEN_GREATER:
 		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
 		if err != nil {
-			return nil
+			return nil, err
 		}
-		return leftVal > rightVal
+		return leftVal > rightVal, nil
 	case TOKEN_GREATER_EQUAL:
 		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
 		if err != nil {
-			return nil
+			return nil, err
 		}
-		return leftVal >= rightVal
+		return leftVal >= rightVal, nil
 	case TOKEN_LESS:
 		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
 		if err != nil {
-			return nil
+			return nil, err
 		}
-		return leftVal < rightVal
+		return leftVal < rightVal, nil
 	case TOKEN_LESS_EQUAL:
 		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
 		if err != nil {
-			return nil
+			return nil, err
 		}
-		return leftVal <= rightVal
+		return leftVal <= rightVal, nil
 	case TOKEN_MINUS:
 		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
 		if err != nil {
-			return nil
+			return nil, err
 		}
-		return leftVal - rightVal
+		return leftVal - rightVal, nil
 	case TOKEN_SLASH:
 		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
 		if err != nil {
-			return nil
+			return nil, err
 		}
-		return leftVal / rightVal
+		return leftVal / rightVal, nil
 	case TOKEN_STAR:
 		leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
 		if err != nil {
-			return nil
+			return nil, err
 		}
-		return leftVal * rightVal
+		return leftVal * rightVal, nil
 	case TOKEN_PLUS:
 		if isNumber(left) && isNumber(right) {
 			leftVal, rightVal, err := inter.checkNumberOperands(expr, expr.Operator, left, right)
 			if err != nil {
-				return nil
+				return nil, err
 			}
-			return leftVal + rightVal
+			return leftVal + rightVal, nil
 		} else if isString(left) && isString(right) {
 			leftVal, rightVal, err := inter.checkStringOperands(expr, expr.Operator, left, right)
 			if err != nil {
-				return nil
+				return nil, err
 			}
-			return leftVal + rightVal
+			return leftVal + rightVal, nil
 		}
-		inter.errorReporter.Push(expr.getLine(), INTERPRETER_WHERE, fmt.Errorf("operands must be two numbers or two strings"))
-		return nil
+		return nil, fmt.Errorf("operands must be two numbers or two strings")
 	case TOKEN_BANG_EQUAL:
-		return !isEqual(left, right)
+		return !isEqual(left, right), nil
 	case TOKEN_EQUAL_EQUAL:
-		return isEqual(left, right)
+		return isEqual(left, right), nil
 	}
 
 	// unreachable
-	return nil
+	return nil, fmt.Errorf("unreachable code")
 }
 
-func (inter *Interpreter) visitConditionalExpr(expr ConditionalExpr) interface{} {
-	condition := inter.evaluate(expr.Condition)
+func (inter *Interpreter) visitConditionalExpr(expr ConditionalExpr) (interface{}, error) {
+	condition, err := inter.evaluate(expr.Condition)
+	if err != nil {
+		return nil, err
+	}
 	if val, _ := isTruthy(condition); val {
 		return inter.evaluate(expr.Left)
 	} else {
@@ -294,22 +312,24 @@ func (inter *Interpreter) visitConditionalExpr(expr ConditionalExpr) interface{}
 	}
 }
 
-func (inter *Interpreter) visitVariableExpr(expr VariableExpr) interface{} {
+func (inter *Interpreter) visitVariableExpr(expr VariableExpr) (interface{}, error) {
 	value, err := inter.environment.Get(expr.Name.Lexeme)
 	if err != nil {
-		inter.errorReporter.Push(expr.getLine(), INTERPRETER_WHERE, err)
-		return nil
+		return nil, err
 	}
-	return value
+	return value, nil
 }
 
-func (inter *Interpreter) visitAssignExpr(expr AssignExpr) interface{} {
-	value := inter.evaluate(expr.Value)
+func (inter *Interpreter) visitAssignExpr(expr AssignExpr) (interface{}, error) {
+	value, err := inter.evaluate(expr.Value)
+	if err != nil {
+		return nil, err
+	}
 	inter.environment.Assign(expr.Name.Lexeme, value)
-	return value
+	return value, nil
 }
 
-func (inter *Interpreter) evaluate(expr Expr) interface{} {
+func (inter *Interpreter) evaluate(expr Expr) (interface{}, error) {
 	return expr.accept(inter)
 }
 
