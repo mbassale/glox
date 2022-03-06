@@ -54,6 +54,8 @@ const (
 	TOKEN_TRUE
 	TOKEN_VAR
 	TOKEN_WHILE
+	TOKEN_BREAK
+	TOKEN_CONTINUE
 
 	TOKEN_EOF
 )
@@ -163,6 +165,10 @@ func TokenTypeToString(tokenType int) string {
 		return "TOKEN_VAR"
 	case TOKEN_WHILE:
 		return "TOKEN_WHILE"
+	case TOKEN_BREAK:
+		return "TOKEN_BREAK"
+	case TOKEN_CONTINUE:
+		return "TOKEN_CONTINUE"
 	default:
 		return "N/A"
 	}
