@@ -52,6 +52,17 @@ func TestAstPrinterPrint(t *testing.T) {
 			),
 			"(while true)\n{\n  (print block);\n}\n",
 		},
+		{
+			"Break-Continue",
+			NewWhileStmt(
+				NewLiteralExpr(true, 1),
+				NewBlockStmt([]Stmt{
+					NewContinueStmt(NewToken(TOKEN_CONTINUE, "continue", nil, 1)),
+					NewBreakStmt(NewToken(TOKEN_BREAK, "break", nil, 1)),
+				}),
+			),
+			"(while true)\n{\n  (continue);\n  (break);\n}\n",
+		},
 	}
 	for _, testCase := range statements {
 		astPrinter := AstPrinter{}

@@ -7,6 +7,8 @@ type Visitor interface {
 	visitVarStmt(stmt VarStmt) interface{}
 	visitIfStmt(stmt IfStmt) interface{}
 	visitWhileStmt(stmt WhileStmt) interface{}
+	visitBreakStmt(stmt BreakStmt) interface{}
+	visitContinueStmt(stmt ContinueStmt) interface{}
 	visitBinaryExpr(expr BinaryExpr) interface{}
 	visitConditionalExpr(expr ConditionalExpr) interface{}
 	visitGroupingExpr(expr GroupingExpr) interface{}
@@ -305,5 +307,41 @@ func NewWhileStmt(condition Expr, body Stmt) WhileStmt {
 	return WhileStmt{
 		Condition: condition,
 		Body:      body,
+	}
+}
+
+type BreakStmt struct {
+	Token Token
+}
+
+func (stmt BreakStmt) accept(visitor Visitor) interface{} {
+	return visitor.visitBreakStmt(stmt)
+}
+
+func (stmt BreakStmt) getLine() int {
+	return stmt.Token.Line
+}
+
+func NewBreakStmt(token Token) BreakStmt {
+	return BreakStmt{
+		Token: token,
+	}
+}
+
+type ContinueStmt struct {
+	Token Token
+}
+
+func (stmt ContinueStmt) accept(visitor Visitor) interface{} {
+	return visitor.visitContinueStmt(stmt)
+}
+
+func (stmt ContinueStmt) getLine() int {
+	return stmt.Token.Line
+}
+
+func NewContinueStmt(token Token) ContinueStmt {
+	return ContinueStmt{
+		Token: token,
 	}
 }

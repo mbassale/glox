@@ -5,9 +5,10 @@ import (
 )
 
 type Parser struct {
-	tokens        []Token
-	current       int
-	errorReporter ErrorReporter
+	tokens            []Token
+	current           int
+	errorReporter     ErrorReporter
+	iteratorStmtCount int
 }
 
 type ParseError struct {
@@ -29,9 +30,10 @@ func NewParseError(message string, token Token) error {
 
 func NewParser(tokens []Token, errorReporter ErrorReporter) Parser {
 	return Parser{
-		tokens:        tokens,
-		current:       0,
-		errorReporter: errorReporter,
+		tokens:            tokens,
+		current:           0,
+		errorReporter:     errorReporter,
+		iteratorStmtCount: 0,
 	}
 }
 
@@ -115,11 +117,17 @@ func (p *Parser) varDeclaration() (Stmt, error) {
 }
 
 /*
- * statement -> forStatement | ifStatement | printStatement | whileStatement | block | expressionStatement ;
- */
+ * statement -> forStatement | ifStatement | printStatement | whileStatement | breakStatement | continueStatement |
+ 				block | expressionStatement ;
+*/
 func (p *Parser) statement() (Stmt, error) {
 	if p.match(TOKEN_FOR) {
-		return p.forStatement()
+		forStmt, err := p.forStatement()
+		if err != nil {
+			return nil, err
+		}
+		p.iteratorStmtCount--
+		return forStmt, nil
 	}
 	if p.match(TOKEN_IF) {
 		return p.ifStatement()
@@ -127,8 +135,19 @@ func (p *Parser) statement() (Stmt, error) {
 	if p.match(TOKEN_PRINT) {
 		return p.printStatement()
 	}
-	if p.match((TOKEN_WHILE)) {
-		return p.whileStatement()
+	if p.match(TOKEN_WHILE) {
+		whileStmt, err := p.whileStatement()
+		if err != nil {
+			return nil, err
+		}
+		p.iteratorStmtCount--
+		return whileStmt, nil
+	}
+	if p.match(TOKEN_BREAK) {
+		return p.breakStatement()
+	}
+	if p.match(TOKEN_CONTINUE) {
+		return p.continueStatement()
 	}
 	if p.match(TOKEN_LEFT_BRACE) {
 		statements, err := p.block()
@@ -232,6 +251,8 @@ func (p *Parser) forStatement() (Stmt, error) {
 		return nil, err
 	}
 
+	p.iteratorStmtCount++
+
 	body, err := p.statement()
 	if err != nil {
 		return nil, err
@@ -308,11 +329,44 @@ func (p *Parser) whileStatement() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	p.iteratorStmtCount++
+
 	body, err := p.statement()
 	if err != nil {
 		return nil, err
 	}
 	return NewWhileStmt(condition, body), nil
+}
+
+/*
+ * breakStatement -> "break" ";" ;
+ */
+func (p *Parser) breakStatement() (Stmt, error) {
+	if p.iteratorStmtCount <= 0 {
+		return nil, NewParseError("break without for or while statement", p.previous())
+	}
+	stmt := NewBreakStmt(p.previous())
+	_, err := p.consume(TOKEN_SEMICOLON, "Expect ';' after break.")
+	if err != nil {
+		return nil, err
+	}
+	return stmt, nil
+}
+
+/*
+ * continueStatement -> "continue" ";" ;
+ */
+func (p *Parser) continueStatement() (Stmt, error) {
+	if p.iteratorStmtCount <= 0 {
+		return nil, NewParseError("continue without for or while statement", p.previous())
+	}
+	stmt := NewContinueStmt(p.previous())
+	_, err := p.consume(TOKEN_SEMICOLON, "Expect ';' after continue.")
+	if err != nil {
+		return nil, err
+	}
+	return stmt, nil
 }
 
 /*

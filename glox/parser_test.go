@@ -144,7 +144,7 @@ func TestParserStatements(t *testing.T) {
 		},
 		{
 			"While-Stmt",
-			"while(true==1){print 1;}",
+			"while(true==1){print 1;break;continue;}",
 			[]Stmt{
 				NewWhileStmt(
 					NewBinaryExpr(
@@ -155,6 +155,12 @@ func TestParserStatements(t *testing.T) {
 					NewBlockStmt([]Stmt{
 						NewPrintStmt(
 							NewLiteralExpr(1.0, 1),
+						),
+						NewBreakStmt(
+							NewToken(TOKEN_BREAK, "break", nil, 1),
+						),
+						NewContinueStmt(
+							NewToken(TOKEN_CONTINUE, "continue", nil, 1),
 						),
 					}),
 				),

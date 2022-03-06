@@ -157,6 +157,14 @@ func (inter *Interpreter) visitWhileStmt(stmt WhileStmt) interface{} {
 	return nil
 }
 
+func (inter *Interpreter) visitBreakStmt(stmt BreakStmt) interface{} {
+	return nil
+}
+
+func (inter *Interpreter) visitContinueStmt(stmt ContinueStmt) interface{} {
+	return nil
+}
+
 func (inter *Interpreter) visitLiteralExpr(expr LiteralExpr) interface{} {
 	return expr.Value
 }

@@ -57,6 +57,14 @@ func (p AstPrinter) visitWhileStmt(stmt WhileStmt) interface{} {
 		stmt.Body.accept(p).(string)
 }
 
+func (p AstPrinter) visitBreakStmt(stmt BreakStmt) interface{} {
+	return p.parenthesize("break") + ";"
+}
+
+func (p AstPrinter) visitContinueStmt(stmt ContinueStmt) interface{} {
+	return p.parenthesize("continue") + ";"
+}
+
 func (p AstPrinter) visitBinaryExpr(expr BinaryExpr) interface{} {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
