@@ -142,6 +142,24 @@ func TestParserStatements(t *testing.T) {
 				),
 			},
 		},
+		{
+			"While-Stmt",
+			"while(true==1){print 1;}",
+			[]Stmt{
+				NewWhileStmt(
+					NewBinaryExpr(
+						NewLiteralExpr(true, 1),
+						NewToken(TOKEN_EQUAL_EQUAL, "==", nil, 1),
+						NewLiteralExpr(1.0, 1),
+					),
+					NewBlockStmt([]Stmt{
+						NewPrintStmt(
+							NewLiteralExpr(1.0, 1),
+						),
+					}),
+				),
+			},
+		},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()

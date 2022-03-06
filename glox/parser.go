@@ -115,7 +115,7 @@ func (p *Parser) varDeclaration() (Stmt, error) {
 }
 
 /*
- * statement -> printStatement | block | expressionStatement | ifStatement ;
+ * statement -> ifStatement | printStatement | whileStatement | block | expressionStatement ;
  */
 func (p *Parser) statement() (Stmt, error) {
 	if p.match(TOKEN_IF) {
@@ -123,6 +123,9 @@ func (p *Parser) statement() (Stmt, error) {
 	}
 	if p.match(TOKEN_PRINT) {
 		return p.printStatement()
+	}
+	if p.match((TOKEN_WHILE)) {
+		return p.whileStatement()
 	}
 	if p.match(TOKEN_LEFT_BRACE) {
 		statements, err := p.block()
@@ -213,6 +216,29 @@ func (p *Parser) ifStatement() (Stmt, error) {
 	}
 
 	return NewIfStmt(condition, thenBranch, elseBranch), nil
+}
+
+/*
+ * whileStatement -> "while" "(" expression ")" statement ;
+ */
+func (p *Parser) whileStatement() (Stmt, error) {
+	_, err := p.consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.")
+	if err != nil {
+		return nil, err
+	}
+	condition, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	_, err = p.consume(TOKEN_RIGHT_PAREN, "Expect ')' after 'while'.")
+	if err != nil {
+		return nil, err
+	}
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+	return NewWhileStmt(condition, body), nil
 }
 
 /*
