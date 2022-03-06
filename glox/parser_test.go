@@ -160,6 +160,46 @@ func TestParserStatements(t *testing.T) {
 				),
 			},
 		},
+		{
+			"For-Stmt",
+			"for(var i=0;i<10;i=i+1){print 1;}",
+			[]Stmt{
+				NewBlockStmt([]Stmt{
+					NewVarStmt(
+						NewToken(TOKEN_IDENTIFIER, "i", "i", 1),
+						NewLiteralExpr(0.0, 1),
+					),
+					NewWhileStmt(
+						NewBinaryExpr(
+							NewVariableExpr(
+								NewToken(TOKEN_IDENTIFIER, "i", "i", 1),
+							),
+							NewToken(TOKEN_LESS, "<", nil, 1),
+							NewLiteralExpr(10.0, 1),
+						),
+						NewBlockStmt([]Stmt{
+							NewBlockStmt([]Stmt{
+								NewPrintStmt(
+									NewLiteralExpr(1.0, 1),
+								),
+							}),
+							NewExpressionStmt(
+								NewAssignExpr(
+									NewToken(TOKEN_IDENTIFIER, "i", "i", 1),
+									NewBinaryExpr(
+										NewVariableExpr(
+											NewToken(TOKEN_IDENTIFIER, "i", "i", 1),
+										),
+										NewToken(TOKEN_PLUS, "+", nil, 1),
+										NewLiteralExpr(1.0, 1),
+									),
+								),
+							),
+						}),
+					),
+				}),
+			},
+		},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()

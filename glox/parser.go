@@ -115,9 +115,12 @@ func (p *Parser) varDeclaration() (Stmt, error) {
 }
 
 /*
- * statement -> ifStatement | printStatement | whileStatement | block | expressionStatement ;
+ * statement -> forStatement | ifStatement | printStatement | whileStatement | block | expressionStatement ;
  */
 func (p *Parser) statement() (Stmt, error) {
+	if p.match(TOKEN_FOR) {
+		return p.forStatement()
+	}
 	if p.match(TOKEN_IF) {
 		return p.ifStatement()
 	}
@@ -183,6 +186,77 @@ func (p *Parser) expressionStatement() (Stmt, error) {
 		return nil, err
 	}
 	return NewExpressionStmt(expr), nil
+}
+
+/*
+ * forStatement -> "for" "(" ( varDeclaration | expressionStatement | ";" ) expression? ";" expression? ")" statement ;
+ */
+func (p *Parser) forStatement() (Stmt, error) {
+	_, err := p.consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.")
+	if err != nil {
+		return nil, err
+	}
+	var initializer Stmt = nil
+	if p.match(TOKEN_SEMICOLON) {
+		initializer = nil
+	} else if p.match(TOKEN_VAR) {
+		initializer, err = p.varDeclaration()
+	} else {
+		initializer, err = p.expressionStatement()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var condition Expr = nil
+	if !p.check(TOKEN_SEMICOLON) {
+		condition, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+	_, err = p.consume(TOKEN_SEMICOLON, "Expect ';' after loop condition.")
+	if err != nil {
+		return nil, err
+	}
+
+	var increment Expr = nil
+	if !p.check(TOKEN_RIGHT_PAREN) {
+		increment, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+	_, err = p.consume(TOKEN_RIGHT_PAREN, "Expect ';' after loop condition.")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+
+	if increment != nil {
+		body = NewBlockStmt([]Stmt{
+			body,
+			NewExpressionStmt(increment),
+		})
+	}
+
+	if condition == nil {
+		condition = NewLiteralExpr(true, body.getLine())
+	}
+	body = NewWhileStmt(condition, body)
+
+	if initializer != nil {
+		body = NewBlockStmt([]Stmt{
+			initializer,
+			body,
+		})
+	}
+
+	return body, nil
 }
 
 /*

@@ -27,6 +27,7 @@ func TestInterpreterStatements(t *testing.T) {
 		{"if(logicalExpr)-true-then-else", "if(3>3 or 2==1 or 3>4 or (true==false)){var test=1;}else{var test=2;}", 2.0},
 		{"while(trueLogicalExpr)-block", "var counter=0;while(counter<5){counter=counter+1;}", 5.0},
 		{"while(falseLogicalExpr)-block", "while(false){print 1;}", nil},
+		{"for(counter)-block", "for(var i=0;i<5;i=i+1){i;}", 5.0},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()
