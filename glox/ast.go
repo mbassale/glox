@@ -6,6 +6,7 @@ type Visitor interface {
 	visitPrintStmt(stmt PrintStmt) interface{}
 	visitVarStmt(stmt VarStmt) interface{}
 	visitIfStmt(stmt IfStmt) interface{}
+	visitWhileStmt(stmt WhileStmt) interface{}
 	visitBinaryExpr(expr BinaryExpr) interface{}
 	visitConditionalExpr(expr ConditionalExpr) interface{}
 	visitGroupingExpr(expr GroupingExpr) interface{}
@@ -284,5 +285,25 @@ func NewIfStmt(condition Expr, thenBranch Stmt, elseBranch Stmt) IfStmt {
 		Condition:  condition,
 		ThenBranch: thenBranch,
 		ElseBranch: elseBranch,
+	}
+}
+
+type WhileStmt struct {
+	Condition Expr
+	Body      Stmt
+}
+
+func (stmt WhileStmt) accept(visitor Visitor) interface{} {
+	return visitor.visitWhileStmt(stmt)
+}
+
+func (stmt WhileStmt) getLine() int {
+	return stmt.Condition.getLine()
+}
+
+func NewWhileStmt(condition Expr, body Stmt) WhileStmt {
+	return WhileStmt{
+		Condition: condition,
+		Body:      body,
 	}
 }

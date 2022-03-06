@@ -143,6 +143,10 @@ func (inter *Interpreter) visitIfStmt(stmt IfStmt) interface{} {
 	return nil
 }
 
+func (inter *Interpreter) visitWhileStmt(stmt WhileStmt) interface{} {
+	return nil
+}
+
 func (inter *Interpreter) visitLiteralExpr(expr LiteralExpr) interface{} {
 	return expr.Value
 }

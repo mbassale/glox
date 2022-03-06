@@ -40,7 +40,17 @@ func TestAstPrinterPrint(t *testing.T) {
 				NewPrintStmt(NewLiteralExpr("then", 1)),
 				NewPrintStmt(NewLiteralExpr("else", 2)),
 			),
-			"(if true)\n(print then);else\n(print else);",
+			"(if true)\n(print then);\nelse\n(print else);",
+		},
+		{
+			"While",
+			NewWhileStmt(
+				NewLiteralExpr(true, 1),
+				NewBlockStmt([]Stmt{
+					NewPrintStmt(NewLiteralExpr("block", 1)),
+				}),
+			),
+			"(while true)\n{\n  (print block);\n}\n",
 		},
 	}
 	for _, testCase := range statements {

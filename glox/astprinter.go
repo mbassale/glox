@@ -46,10 +46,15 @@ func (p AstPrinter) visitIfStmt(stmt IfStmt) interface{} {
 		astStr += ";\n"
 	}
 	if stmt.ElseBranch != nil {
-		astStr += "else\n"
+		astStr += "\nelse\n"
 		astStr += stmt.ElseBranch.accept(p).(string)
 	}
 	return astStr
+}
+
+func (p AstPrinter) visitWhileStmt(stmt WhileStmt) interface{} {
+	return p.parenthesize("while", stmt.Condition) + "\n" +
+		stmt.Body.accept(p).(string)
 }
 
 func (p AstPrinter) visitBinaryExpr(expr BinaryExpr) interface{} {
