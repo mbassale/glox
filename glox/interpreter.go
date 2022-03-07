@@ -14,6 +14,20 @@ type Interpreter struct {
 	lastValue     interface{}
 }
 
+type BreakResult struct {
+}
+
+func (b BreakResult) Error() string {
+	return "break"
+}
+
+type ContinueResult struct {
+}
+
+func (c ContinueResult) Error() string {
+	return "continue"
+}
+
 func NewInterpreter(errorReporter ErrorReporter) Interpreter {
 	newEnvironment := NewEnvironment()
 	return Interpreter{
@@ -34,8 +48,8 @@ func (inter *Interpreter) GetLastValue() (interface{}, error) {
 	return inter.lastValue, nil
 }
 
-func (inter *Interpreter) execute(stmt Stmt) {
-	stmt.accept(inter)
+func (inter *Interpreter) execute(stmt Stmt) (interface{}, error) {
+	return stmt.accept(inter)
 }
 
 func isString(val interface{}) bool {
@@ -103,26 +117,30 @@ func isEqual(left interface{}, right interface{}) bool {
 
 func (inter *Interpreter) visitBlockStmt(stmt BlockStmt) (interface{}, error) {
 	localEnv := NewEnvironmentWithEnclosing(inter.environment)
-	inter.executeBlock(stmt.Statements, &localEnv)
-	return nil, nil
+	return inter.executeBlock(stmt.Statements, &localEnv)
 }
 
 func (inter *Interpreter) visitExpressionStmt(stmt ExpressionStmt) (interface{}, error) {
-	inter.lastValue, _ = inter.evaluate(stmt.Expression)
-	return inter.lastValue, nil
+	var err error = nil
+	inter.lastValue, err = inter.evaluate(stmt.Expression)
+	return inter.lastValue, err
 }
 
 func (inter *Interpreter) visitPrintStmt(stmt PrintStmt) (interface{}, error) {
-	value, _ := inter.evaluate(stmt.Print)
+	value, err := inter.evaluate(stmt.Print)
 	fmt.Println(value)
 	inter.lastValue = value
-	return inter.lastValue, nil
+	return inter.lastValue, err
 }
 
 func (inter *Interpreter) visitVarStmt(stmt VarStmt) (interface{}, error) {
 	var value interface{} = nil
+	var err error = nil
 	if stmt.Initializer != nil {
-		value, _ = inter.evaluate(stmt.Initializer)
+		value, err = inter.evaluate(stmt.Initializer)
+		if err != nil {
+			return nil, err
+		}
 	}
 	inter.environment.Define(stmt.Name.Lexeme, value)
 	inter.lastValue = value
@@ -140,9 +158,9 @@ func (inter *Interpreter) visitIfStmt(stmt IfStmt) (interface{}, error) {
 		return nil, err
 	}
 	if conditionVal {
-		inter.execute(stmt.ThenBranch)
+		return inter.execute(stmt.ThenBranch)
 	} else if stmt.ElseBranch != nil {
-		inter.execute(stmt.ElseBranch)
+		return inter.execute(stmt.ElseBranch)
 	}
 	return nil, nil
 }
@@ -160,17 +178,26 @@ func (inter *Interpreter) visitWhileStmt(stmt WhileStmt) (interface{}, error) {
 		if !keepRunning {
 			break
 		}
-		inter.execute(stmt.Body)
+		_, result := inter.execute(stmt.Body)
+		switch result.(type) {
+		case BreakResult:
+			keepRunning = false
+		case ContinueResult:
+			continue
+		}
+		if !keepRunning {
+			break
+		}
 	}
 	return nil, nil
 }
 
 func (inter *Interpreter) visitBreakStmt(stmt BreakStmt) (interface{}, error) {
-	return nil, nil
+	return nil, BreakResult{}
 }
 
 func (inter *Interpreter) visitContinueStmt(stmt ContinueStmt) (interface{}, error) {
-	return nil, nil
+	return nil, ContinueResult{}
 }
 
 func (inter *Interpreter) visitLiteralExpr(expr LiteralExpr) (interface{}, error) {
@@ -333,13 +360,20 @@ func (inter *Interpreter) evaluate(expr Expr) (interface{}, error) {
 	return expr.accept(inter)
 }
 
-func (inter *Interpreter) executeBlock(statements []Stmt, localEnv *Environment) {
+func (inter *Interpreter) executeBlock(statements []Stmt, localEnv *Environment) (interface{}, error) {
 	previousEnv := inter.environment
 	inter.environment = localEnv
 	for _, stmt := range statements {
-		inter.execute(stmt)
+		_, result := inter.execute(stmt)
+		switch result.(type) {
+		case ContinueResult:
+			return nil, result
+		case BreakResult:
+			return nil, result
+		}
 	}
 	inter.environment = previousEnv
+	return nil, nil
 }
 
 func (inter *Interpreter) checkNumberOperands(expr Expr, operator Token, left interface{}, right interface{}) (float64, float64, error) {
