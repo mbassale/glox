@@ -11,6 +11,7 @@ const INTERPRETER_WHERE = "interpreter"
 type Interpreter struct {
 	errorReporter ErrorReporter
 	environment   *Environment
+	globals       *Environment
 	lastValue     interface{}
 }
 
@@ -29,10 +30,12 @@ func (c ContinueResult) Error() string {
 }
 
 func NewInterpreter(errorReporter ErrorReporter) Interpreter {
-	newEnvironment := NewEnvironment()
+	globals := NewEnvironment()
+	globals.Define("clock", NewClockCallable())
 	return Interpreter{
 		errorReporter: errorReporter,
-		environment:   &newEnvironment,
+		globals:       &globals,
+		environment:   &globals,
 		lastValue:     nil,
 	}
 }
@@ -90,6 +93,10 @@ func anyToFloat64(val interface{}) (float64, error) {
 	case string:
 		return strconv.ParseFloat(val, 64)
 	case float32:
+		return float64(val), nil
+	case int32:
+		return float64(val), nil
+	case int64:
 		return float64(val), nil
 	default:
 		return 0, fmt.Errorf("cannot convert to float: %v", val)
@@ -357,7 +364,34 @@ func (inter *Interpreter) visitAssignExpr(expr AssignExpr) (interface{}, error) 
 }
 
 func (inter *Interpreter) visitCallExpr(expr CallExpr) (interface{}, error) {
-	return nil, nil
+	callee, err := inter.evaluate(expr.Callee)
+	if err != nil {
+		return nil, err
+	}
+
+	var argumentValues []interface{} = []interface{}{}
+	for _, argumentExpr := range expr.Arguments {
+		argumentValue, err := inter.evaluate(argumentExpr)
+		if err != nil {
+			return nil, err
+		}
+		argumentValues = append(argumentValues, argumentValue)
+	}
+
+	switch callee := callee.(type) {
+	case Callable:
+		argumentCount := len(argumentValues)
+		if argumentCount != callee.getArity() {
+			err = fmt.Errorf("expected %d arguments but got %d", callee.getArity(), argumentCount)
+			inter.errorReporter.Push(expr.getLine(), INTERPRETER_WHERE, err)
+			return nil, err
+		}
+		return callee.call(inter, argumentValues)
+	default:
+		err = fmt.Errorf("can only call function and classes")
+		inter.errorReporter.Push(expr.getLine(), INTERPRETER_WHERE, err)
+		return nil, err
+	}
 }
 
 func (inter *Interpreter) evaluate(expr Expr) (interface{}, error) {

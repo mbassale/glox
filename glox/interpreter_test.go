@@ -30,6 +30,7 @@ func TestInterpreterStatements(t *testing.T) {
 		{"ForStmt", "for(var i=0;i<5;i=i+1){i;}", 5.0},
 		{"ContinueStmt", "var counter=0;while(counter<5){counter=counter+1;continue;counter=0;}", 5.0},
 		{"BreakStmt", "var counter=0;while(counter<5){counter=counter+1;break;counter=0;}", 1.0},
+		{"CallExpr", "if(clock()>0){print 1;}", 1.0},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()
