@@ -558,7 +558,7 @@ func (p *Parser) factor() (Expr, error) {
 }
 
 /*
- * unary -> ( "!" | "-" ) unary | primary ;
+ * unary -> ( "!" | "-" ) unary | call ;
  */
 func (p *Parser) unary() (Expr, error) {
 	if p.match(TOKEN_BANG, TOKEN_MINUS) {
@@ -570,7 +570,58 @@ func (p *Parser) unary() (Expr, error) {
 		return NewUnaryExpr(operator, right), nil
 	}
 
-	return p.primary()
+	return p.call()
+}
+
+/*
+ * call -> primary ( "(" arguments? ")" )* ;
+ */
+func (p *Parser) call() (Expr, error) {
+	expr, err := p.primary()
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		if p.match(TOKEN_LEFT_PAREN) {
+			expr, err = p.finishCall(expr)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			break
+		}
+	}
+
+	return expr, nil
+}
+
+/*
+ * arguments -> expression ( "," expression )* ;
+ */
+func (p *Parser) finishCall(callee Expr) (Expr, error) {
+	var arguments []Expr = []Expr{}
+	if !p.check(TOKEN_RIGHT_PAREN) {
+		for !p.isAtEnd() {
+			expr, err := p.expression()
+			if err != nil {
+				return nil, err
+			}
+			if len(arguments) >= 255 {
+				return nil, NewParseError("can't have more than 255 arguments", p.peek())
+			}
+			arguments = append(arguments, expr)
+			if !p.match(TOKEN_COMMA) {
+				break
+			}
+		}
+	}
+	paren, err := p.consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.")
+	if err != nil {
+		return nil, err
+	}
+
+	return NewCallExpr(callee, paren, arguments), nil
 }
 
 /*

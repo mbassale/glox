@@ -206,6 +206,30 @@ func TestParserStatements(t *testing.T) {
 				}),
 			},
 		},
+		{
+			"Function Call Expression",
+			"testFunction(arg1, arg2, \"string arg3\", true);",
+			[]Stmt{
+				NewExpressionStmt(
+					NewCallExpr(
+						NewVariableExpr(
+							NewToken(TOKEN_IDENTIFIER, "testFunction", "testFunction", 1),
+						),
+						NewToken(TOKEN_RIGHT_PAREN, ")", nil, 1),
+						[]Expr{
+							NewVariableExpr(
+								NewToken(TOKEN_IDENTIFIER, "arg1", "arg1", 1),
+							),
+							NewVariableExpr(
+								NewToken(TOKEN_IDENTIFIER, "arg2", "arg2", 1),
+							),
+							NewLiteralExpr("string arg3", 1),
+							NewLiteralExpr(true, 1),
+						},
+					),
+				),
+			},
+		},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()

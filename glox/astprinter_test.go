@@ -63,6 +63,26 @@ func TestAstPrinterPrint(t *testing.T) {
 			),
 			"(while true)\n{\n  (continue);\n  (break);\n}\n",
 		},
+		{
+			"Function Call",
+			NewCallExpr(
+				NewVariableExpr(
+					NewToken(TOKEN_IDENTIFIER, "testFunction", "testFunction", 1),
+				),
+				NewToken(TOKEN_RIGHT_PAREN, ")", nil, 1),
+				[]Expr{
+					NewVariableExpr(
+						NewToken(TOKEN_IDENTIFIER, "arg1", "arg1", 1),
+					),
+					NewVariableExpr(
+						NewToken(TOKEN_IDENTIFIER, "arg2", "arg2", 1),
+					),
+					NewLiteralExpr("string arg3", 1),
+					NewLiteralExpr(true, 1),
+				},
+			),
+			"(call testFunction arg1 arg2 string arg3 true)",
+		},
 	}
 	for _, testCase := range statements {
 		astPrinter := AstPrinter{}

@@ -103,6 +103,14 @@ func (p AstPrinter) visitAssignExpr(expr AssignExpr) (interface{}, error) {
 	return p.parenthesize("= "+expr.Name.Lexeme, expr.Value), nil
 }
 
+func (p AstPrinter) visitCallExpr(expr CallExpr) (interface{}, error) {
+	args := []interface{}{expr.Callee}
+	for _, arg := range expr.Arguments {
+		args = append(args, arg)
+	}
+	return p.parenthesize("call", args...), nil
+}
+
 func (p AstPrinter) parenthesize(name string, exprs ...interface{}) string {
 	var builder string
 	builder += "(" + name

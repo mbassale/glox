@@ -17,6 +17,7 @@ type Visitor interface {
 	visitUnaryExpr(expr UnaryExpr) (interface{}, error)
 	visitVariableExpr(expr VariableExpr) (interface{}, error)
 	visitAssignExpr(expr AssignExpr) (interface{}, error)
+	visitCallExpr(expr CallExpr) (interface{}, error)
 }
 
 type Expr interface {
@@ -183,6 +184,28 @@ func NewAssignExpr(name Token, value Expr) AssignExpr {
 	return AssignExpr{
 		Name:  name,
 		Value: value,
+	}
+}
+
+type CallExpr struct {
+	Callee    Expr
+	Paren     Token
+	Arguments []Expr
+}
+
+func (e CallExpr) accept(visitor Visitor) (interface{}, error) {
+	return visitor.visitCallExpr(e)
+}
+
+func (e CallExpr) getLine() int {
+	return e.Paren.Line
+}
+
+func NewCallExpr(callee Expr, paren Token, arguments []Expr) CallExpr {
+	return CallExpr{
+		Callee:    callee,
+		Paren:     paren,
+		Arguments: arguments,
 	}
 }
 

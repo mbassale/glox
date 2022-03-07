@@ -356,6 +356,10 @@ func (inter *Interpreter) visitAssignExpr(expr AssignExpr) (interface{}, error) 
 	return value, nil
 }
 
+func (inter *Interpreter) visitCallExpr(expr CallExpr) (interface{}, error) {
+	return nil, nil
+}
+
 func (inter *Interpreter) evaluate(expr Expr) (interface{}, error) {
 	return expr.accept(inter)
 }
