@@ -9,6 +9,7 @@ type Visitor interface {
 	visitWhileStmt(stmt WhileStmt) (interface{}, error)
 	visitBreakStmt(stmt BreakStmt) (interface{}, error)
 	visitContinueStmt(stmt ContinueStmt) (interface{}, error)
+	visitFunctionStmt(stmt FunctionStmt) (interface{}, error)
 	visitBinaryExpr(expr BinaryExpr) (interface{}, error)
 	visitConditionalExpr(expr ConditionalExpr) (interface{}, error)
 	visitGroupingExpr(expr GroupingExpr) (interface{}, error)
@@ -366,5 +367,27 @@ func (stmt ContinueStmt) getLine() int {
 func NewContinueStmt(token Token) ContinueStmt {
 	return ContinueStmt{
 		Token: token,
+	}
+}
+
+type FunctionStmt struct {
+	Name   Token
+	Params []Token
+	Body   []Stmt
+}
+
+func (stmt FunctionStmt) accept(visitor Visitor) (interface{}, error) {
+	return visitor.visitFunctionStmt(stmt)
+}
+
+func (stmt FunctionStmt) getLine() int {
+	return stmt.Name.Line
+}
+
+func NewFunctionStmt(name Token, params []Token, body []Stmt) FunctionStmt {
+	return FunctionStmt{
+		Name:   name,
+		Params: params,
+		Body:   body,
 	}
 }

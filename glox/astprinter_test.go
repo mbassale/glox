@@ -83,6 +83,23 @@ func TestAstPrinterPrint(t *testing.T) {
 			),
 			"(call testFunction arg1 arg2 string arg3 true)",
 		},
+		{
+			"Function Declaration",
+			NewFunctionStmt(
+				NewToken(TOKEN_IDENTIFIER, "testFunction", "testFunction", 1),
+				[]Token{
+					NewToken(TOKEN_IDENTIFIER, "arg1", "arg1", 1),
+					NewToken(TOKEN_IDENTIFIER, "arg2", "arg2", 1),
+					NewToken(TOKEN_IDENTIFIER, "arg3", "arg3", 1),
+				},
+				[]Stmt{
+					NewPrintStmt(
+						NewLiteralExpr(1.0, 1),
+					),
+				},
+			),
+			"(func testFunction(arg1, arg2, arg3)) {\n  (print 1);\n}\n",
+		},
 	}
 	for _, testCase := range statements {
 		astPrinter := AstPrinter{}

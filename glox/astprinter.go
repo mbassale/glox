@@ -68,6 +68,21 @@ func (p AstPrinter) visitContinueStmt(stmt ContinueStmt) (interface{}, error) {
 	return p.parenthesize("continue") + ";", nil
 }
 
+func (p AstPrinter) visitFunctionStmt(stmt FunctionStmt) (interface{}, error) {
+	args := []string{}
+	for _, arg := range stmt.Params {
+		args = append(args, arg.Lexeme)
+	}
+	funcSignature := p.parenthesize("func " + stmt.Name.Lexeme + "(" + strings.Join(args, ", ") + ")")
+	astStrs := []string{}
+	for _, stmt := range stmt.Body {
+		ast, _ := stmt.accept(p)
+		astStr := "  " + ast.(string)
+		astStrs = append(astStrs, astStr)
+	}
+	return fmt.Sprintf("%s {\n%s\n}\n", funcSignature, strings.Join(astStrs, "\n")), nil
+}
+
 func (p AstPrinter) visitBinaryExpr(expr BinaryExpr) (interface{}, error) {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right), nil
 }

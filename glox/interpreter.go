@@ -207,6 +207,10 @@ func (inter *Interpreter) visitContinueStmt(stmt ContinueStmt) (interface{}, err
 	return nil, ContinueResult{}
 }
 
+func (inter *Interpreter) visitFunctionStmt(stmt FunctionStmt) (interface{}, error) {
+	return nil, nil
+}
+
 func (inter *Interpreter) visitLiteralExpr(expr LiteralExpr) (interface{}, error) {
 	return expr.Value, nil
 }
