@@ -230,6 +230,25 @@ func TestParserStatements(t *testing.T) {
 				),
 			},
 		},
+		{
+			"Function Declaration Statement",
+			"fun testFunction(arg1,arg2,arg3){print 1;}",
+			[]Stmt{
+				NewFunctionStmt(
+					NewToken(TOKEN_IDENTIFIER, "testFunction", "testFunction", 1),
+					[]Token{
+						NewToken(TOKEN_IDENTIFIER, "arg1", "arg1", 1),
+						NewToken(TOKEN_IDENTIFIER, "arg2", "arg2", 1),
+						NewToken(TOKEN_IDENTIFIER, "arg3", "arg3", 1),
+					},
+					[]Stmt{
+						NewPrintStmt(
+							NewLiteralExpr(1.0, 1),
+						),
+					},
+				),
+			},
+		},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()

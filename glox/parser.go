@@ -83,8 +83,12 @@ func (p *Parser) synchronize() {
 
 /*
  * program -> declaration* EOF ;
+ * declaration -> funcDeclaration | varDeclaration | statement ;
  */
 func (p *Parser) declaration() (Stmt, error) {
+	if p.match(TOKEN_FUN) {
+		return p.function("function")
+	}
 	if p.match(TOKEN_VAR) {
 		return p.varDeclaration()
 	}
@@ -92,7 +96,54 @@ func (p *Parser) declaration() (Stmt, error) {
 }
 
 /*
- * declaration -> varDeclaration | statement ;
+ * funcDeclaration -> "fun" function ;
+ * function        -> IDENTIFIER "(" parameters? ")" block ;
+ * parameters      -> IDENTIFIER ( "," IDENTIFIER )* ;
+ */
+func (p *Parser) function(kind string) (Stmt, error) {
+	name, err := p.consume(TOKEN_IDENTIFIER, "Expect "+kind+"name.")
+	if err != nil {
+		return nil, err
+	}
+	_, err = p.consume(TOKEN_LEFT_PAREN, "Expect '(' after "+kind+"name.")
+	if err != nil {
+		return nil, err
+	}
+	var parameters []Token = []Token{}
+	if !p.check(TOKEN_RIGHT_PAREN) {
+		for {
+			if len(parameters) >= 255 {
+				return nil, fmt.Errorf("can't have more than 255 parameters")
+			}
+			param, err := p.consume(TOKEN_IDENTIFIER, "Expect parameter name.")
+			if err != nil {
+				return nil, err
+			}
+			parameters = append(parameters, param)
+			if !p.match(TOKEN_COMMA) {
+				break
+			}
+		}
+	}
+	_, err = p.consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(TOKEN_LEFT_BRACE, "Expect '{' before "+kind+" body.")
+	if err != nil {
+		return nil, err
+	}
+	body, err := p.block()
+	if err != nil {
+		return nil, err
+	}
+
+	return NewFunctionStmt(name, parameters, body), nil
+}
+
+/*
+ * varDeclaration -> "var" IDENTIFIER ("=" expression )? ;
  */
 func (p *Parser) varDeclaration() (Stmt, error) {
 	name, err := p.consume(TOKEN_IDENTIFIER, "Expect variable name.")
