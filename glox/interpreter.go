@@ -208,6 +208,8 @@ func (inter *Interpreter) visitContinueStmt(stmt ContinueStmt) (interface{}, err
 }
 
 func (inter *Interpreter) visitFunctionStmt(stmt FunctionStmt) (interface{}, error) {
+	function := NewFunctionCallable(stmt)
+	inter.environment.Define(stmt.Name.Lexeme, function)
 	return nil, nil
 }
 
