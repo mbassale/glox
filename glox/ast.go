@@ -10,6 +10,7 @@ type Visitor interface {
 	visitBreakStmt(stmt BreakStmt) (interface{}, error)
 	visitContinueStmt(stmt ContinueStmt) (interface{}, error)
 	visitFunctionStmt(stmt FunctionStmt) (interface{}, error)
+	visitReturnStmt(stmt ReturnStmt) (interface{}, error)
 	visitBinaryExpr(expr BinaryExpr) (interface{}, error)
 	visitConditionalExpr(expr ConditionalExpr) (interface{}, error)
 	visitGroupingExpr(expr GroupingExpr) (interface{}, error)
@@ -389,5 +390,25 @@ func NewFunctionStmt(name Token, params []Token, body []Stmt) FunctionStmt {
 		Name:   name,
 		Params: params,
 		Body:   body,
+	}
+}
+
+type ReturnStmt struct {
+	Keyword Token
+	Value   Expr
+}
+
+func (stmt ReturnStmt) accept(visitor Visitor) (interface{}, error) {
+	return visitor.visitReturnStmt(stmt)
+}
+
+func (stmt ReturnStmt) getLine() int {
+	return stmt.Keyword.Line
+}
+
+func NewReturnStmt(keyword Token, value Expr) ReturnStmt {
+	return ReturnStmt{
+		Keyword: keyword,
+		Value:   value,
 	}
 }

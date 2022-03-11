@@ -83,6 +83,10 @@ func (p AstPrinter) visitFunctionStmt(stmt FunctionStmt) (interface{}, error) {
 	return fmt.Sprintf("%s {\n%s\n}\n", funcSignature, strings.Join(astStrs, "\n")), nil
 }
 
+func (p AstPrinter) visitReturnStmt(stmt ReturnStmt) (interface{}, error) {
+	return p.parenthesize("return", stmt.Value) + ";", nil
+}
+
 func (p AstPrinter) visitBinaryExpr(expr BinaryExpr) (interface{}, error) {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right), nil
 }

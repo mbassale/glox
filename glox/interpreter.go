@@ -213,6 +213,10 @@ func (inter *Interpreter) visitFunctionStmt(stmt FunctionStmt) (interface{}, err
 	return nil, nil
 }
 
+func (inter *Interpreter) visitReturnStmt(stmt ReturnStmt) (interface{}, error) {
+	return nil, nil
+}
+
 func (inter *Interpreter) visitLiteralExpr(expr LiteralExpr) (interface{}, error) {
 	return expr.Value, nil
 }

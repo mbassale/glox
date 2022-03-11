@@ -100,6 +100,14 @@ func TestAstPrinterPrint(t *testing.T) {
 			),
 			"(func testFunction(arg1, arg2, arg3)) {\n  (print 1);\n}\n",
 		},
+		{
+			"Return Stmt",
+			NewReturnStmt(
+				NewToken(TOKEN_RETURN, "return", "return", 1),
+				NewLiteralExpr(true, 1),
+			),
+			"(return true);",
+		},
 	}
 	for _, testCase := range statements {
 		astPrinter := AstPrinter{}
