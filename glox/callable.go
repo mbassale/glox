@@ -35,7 +35,12 @@ func (c FunctionCallable) call(inter *Interpreter, arguments []interface{}) (int
 	for i, arg := range c.declaration.Params {
 		env.Define(arg.Lexeme, arguments[i])
 	}
-	return inter.executeBlock(c.declaration.Body, &env)
+	value, result := inter.executeBlock(c.declaration.Body, &env)
+	switch result := result.(type) {
+	case ReturnResult:
+		return result.value, nil
+	}
+	return value, result
 }
 
 func NewFunctionCallable(declaration FunctionStmt) FunctionCallable {

@@ -29,6 +29,14 @@ func (c ContinueResult) Error() string {
 	return "continue"
 }
 
+type ReturnResult struct {
+	value interface{}
+}
+
+func (r ReturnResult) Error() string {
+	return "return"
+}
+
 func NewInterpreter(errorReporter ErrorReporter) Interpreter {
 	globals := NewEnvironment()
 	globals.Define("clock", NewClockCallable())
@@ -185,15 +193,14 @@ func (inter *Interpreter) visitWhileStmt(stmt WhileStmt) (interface{}, error) {
 		if !keepRunning {
 			break
 		}
-		_, result := inter.execute(stmt.Body)
-		switch result.(type) {
+		value, result := inter.execute(stmt.Body)
+		switch result := result.(type) {
 		case BreakResult:
-			keepRunning = false
+			return value, result
+		case ReturnResult:
+			return value, result
 		case ContinueResult:
 			continue
-		}
-		if !keepRunning {
-			break
 		}
 	}
 	return nil, nil
@@ -214,7 +221,13 @@ func (inter *Interpreter) visitFunctionStmt(stmt FunctionStmt) (interface{}, err
 }
 
 func (inter *Interpreter) visitReturnStmt(stmt ReturnStmt) (interface{}, error) {
-	return nil, nil
+	value, err := inter.evaluate(stmt.Value)
+	if err != nil {
+		return nil, err
+	}
+	return nil, ReturnResult{
+		value: value,
+	}
 }
 
 func (inter *Interpreter) visitLiteralExpr(expr LiteralExpr) (interface{}, error) {
@@ -411,17 +424,24 @@ func (inter *Interpreter) evaluate(expr Expr) (interface{}, error) {
 func (inter *Interpreter) executeBlock(statements []Stmt, localEnv *Environment) (interface{}, error) {
 	previousEnv := inter.environment
 	inter.environment = localEnv
+	defer func() {
+		inter.environment = previousEnv
+	}()
+	var value interface{} = nil
+	var result error = nil
 	for _, stmt := range statements {
-		_, result := inter.execute(stmt)
-		switch result.(type) {
+		value, result = inter.execute(stmt)
+		switch result := result.(type) {
 		case ContinueResult:
-			return nil, result
+			return value, result
 		case BreakResult:
-			return nil, result
+			return value, result
+		case ReturnResult:
+			value = result.value
+			return value, result
 		}
 	}
-	inter.environment = previousEnv
-	return nil, nil
+	return value, result
 }
 
 func (inter *Interpreter) checkNumberOperands(expr Expr, operator Token, left interface{}, right interface{}) (float64, float64, error) {

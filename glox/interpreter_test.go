@@ -31,7 +31,8 @@ func TestInterpreterStatements(t *testing.T) {
 		{"ContinueStmt", "var counter=0;while(counter<5){counter=counter+1;continue;counter=0;}", 5.0},
 		{"BreakStmt", "var counter=0;while(counter<5){counter=counter+1;break;counter=0;}", 1.0},
 		{"CallExpr", "if(clock()>0){var counter=1;}", 1.0},
-		{"FunctionStmt", "fun testFunction(arg){var counter=arg;}testFunction(1.0);", nil},
+		{"FunctionStmt", "fun testFunction(arg){var counter=arg;}testFunction(1.0);", 1.0},
+		{"ReturnStmt", "fun testFunction(num) { for (var i = 0; i < num; i=i+1) { if (i >= 2) { return i; } } } testFunction(10.0);", 2.0},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()
