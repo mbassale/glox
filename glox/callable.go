@@ -24,6 +24,7 @@ func NewClockCallable() ClockCallable {
 
 type FunctionCallable struct {
 	declaration FunctionStmt
+	closure     *Environment
 }
 
 func (c FunctionCallable) getArity() int {
@@ -31,7 +32,7 @@ func (c FunctionCallable) getArity() int {
 }
 
 func (c FunctionCallable) call(inter *Interpreter, arguments []interface{}) (interface{}, error) {
-	env := NewEnvironmentWithEnclosing(inter.globals)
+	env := NewEnvironmentWithEnclosing(c.closure)
 	for i, arg := range c.declaration.Params {
 		env.Define(arg.Lexeme, arguments[i])
 	}
@@ -43,8 +44,9 @@ func (c FunctionCallable) call(inter *Interpreter, arguments []interface{}) (int
 	return value, result
 }
 
-func NewFunctionCallable(declaration FunctionStmt) FunctionCallable {
+func NewFunctionCallable(declaration FunctionStmt, closure *Environment) FunctionCallable {
 	return FunctionCallable{
 		declaration: declaration,
+		closure:     closure,
 	}
 }

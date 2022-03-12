@@ -60,6 +60,7 @@ func TestInterpreterFiles(t *testing.T) {
 		lastValue interface{}
 	}{
 		{"01-fibonacci", "testdata/interpreter/01-fibonacci.glox", 4181.0},
+		{"02-closures", "testdata/interpreter/02-closures.glox", 2.0},
 	}
 
 	for _, testCase := range testCases {
