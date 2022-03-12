@@ -249,6 +249,22 @@ func TestParserStatements(t *testing.T) {
 				),
 			},
 		},
+		{
+			"Return Statement",
+			"return 2*testVar;",
+			[]Stmt{
+				NewReturnStmt(
+					NewToken(TOKEN_RETURN, "return", nil, 1),
+					NewBinaryExpr(
+						NewLiteralExpr(2.0, 1),
+						NewToken(TOKEN_STAR, "*", nil, 1),
+						NewVariableExpr(
+							NewToken(TOKEN_IDENTIFIER, "testVar", "testVar", 1),
+						),
+					),
+				),
+			},
+		},
 	}
 	for _, testCase := range testCases {
 		errorReporter := NewConsoleErrorReporter()

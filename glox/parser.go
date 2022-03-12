@@ -168,8 +168,9 @@ func (p *Parser) varDeclaration() (Stmt, error) {
 }
 
 /*
- * statement -> forStatement | ifStatement | printStatement | whileStatement | breakStatement | continueStatement |
- 				block | expressionStatement ;
+ * statement -> forStatement | ifStatement | printStatement | whileStatement |
+ 				breakStatement | continueStatement | block | expressionStatement |
+				returnStatement ;
 */
 func (p *Parser) statement() (Stmt, error) {
 	if p.match(TOKEN_FOR) {
@@ -185,6 +186,9 @@ func (p *Parser) statement() (Stmt, error) {
 	}
 	if p.match(TOKEN_PRINT) {
 		return p.printStatement()
+	}
+	if p.match(TOKEN_RETURN) {
+		return p.returnStatement()
 	}
 	if p.match(TOKEN_WHILE) {
 		whileStmt, err := p.whileStatement()
@@ -241,6 +245,23 @@ func (p *Parser) printStatement() (Stmt, error) {
 		return nil, err
 	}
 	return NewPrintStmt(value), nil
+}
+
+/*
+ * returnStatement -> "return" expression? ";" ;
+ */
+func (p *Parser) returnStatement() (Stmt, error) {
+	keyword := p.previous()
+	var value Expr = nil
+	var err error = nil
+	if !p.check(TOKEN_SEMICOLON) {
+		value, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
+	}
+	_, err = p.consume(TOKEN_SEMICOLON, "Expect ';' after return value.")
+	return NewReturnStmt(keyword, value), err
 }
 
 /*
