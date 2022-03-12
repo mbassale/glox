@@ -1,6 +1,7 @@
 package glox
 
 import (
+	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -50,4 +51,40 @@ func TestInterpreterStatements(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestInterpreterFiles(t *testing.T) {
+	testCases := []struct {
+		name      string
+		path      string
+		lastValue interface{}
+	}{
+		{"01-fibonacci", "testdata/interpreter/01-fibonacci.glox", 4181.0},
+	}
+
+	for _, testCase := range testCases {
+		sourceBytes, err := ioutil.ReadFile(testCase.path)
+		if !assert.Nil(t, err) {
+			continue
+		}
+		source := string(sourceBytes)
+		errorReporter := NewConsoleErrorReporter()
+		interpreter := NewInterpreter(errorReporter)
+		scanner := NewScanner(source, errorReporter)
+		tokens := scanner.ScanTokens()
+		if !assert.False(t, errorReporter.HasError()) {
+			continue
+		}
+		parser := NewParser(tokens, errorReporter)
+		statements := parser.Parse()
+		if !assert.False(t, errorReporter.HasError()) {
+			continue
+		}
+		actualLastValue, _ := interpreter.Interpret(statements)
+		if !assert.False(t, errorReporter.HasError()) {
+			continue
+		}
+		assert.Equal(t, testCase.lastValue, actualLastValue)
+	}
+
 }

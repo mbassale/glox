@@ -136,7 +136,15 @@ func (p AstPrinter) parenthesize(name string, exprs ...interface{}) string {
 	for _, expr := range exprs {
 		ast, _ := expr.(Expr).accept(p)
 		builder += " "
-		builder += fmt.Sprintf("%v", ast.(string))
+		switch ast := ast.(type) {
+		case string:
+			builder += fmt.Sprintf("%v", ast)
+		case nil:
+			builder += "<nil>"
+		case fmt.Stringer:
+			builder += fmt.Sprintf("%v", ast)
+		}
+
 	}
 	builder += ")"
 	return builder
