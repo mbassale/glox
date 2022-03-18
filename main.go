@@ -65,6 +65,10 @@ func run(source string, interpreter *glox.Interpreter, errorReporter glox.ErrorR
 	}
 	astPrinter := glox.AstPrinter{}
 	fmt.Println(astPrinter.Print(statements))
+
+	resolver := glox.NewResolver(interpreter)
+	resolver.ResolveStatements(statements)
+
 	lastValue, _ := interpreter.Interpret(statements)
 	fmt.Printf("=%v\n", lastValue)
 	if errorReporter.HasError() {
