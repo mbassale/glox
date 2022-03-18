@@ -36,6 +36,14 @@ func (env *Environment) Get(name string) (interface{}, error) {
 	return val, nil
 }
 
+func (env *Environment) GetAt(distance int, name string) (interface{}, error) {
+	value, ok := env.ancestor(distance).values[name]
+	if !ok {
+		return nil, fmt.Errorf("variable: %v not found at distance: %v", name, distance)
+	}
+	return value, nil
+}
+
 func (env *Environment) Assign(name string, value interface{}) error {
 	_, ok := env.values[name]
 	if !ok {
@@ -46,4 +54,16 @@ func (env *Environment) Assign(name string, value interface{}) error {
 	}
 	env.values[name] = value
 	return nil
+}
+
+func (env *Environment) AssignAt(distance int, name string, value interface{}) error {
+	return env.ancestor(distance).Assign(name, value)
+}
+
+func (env *Environment) ancestor(distance int) *Environment {
+	environment := env
+	for i := 0; i < distance; i++ {
+		environment = environment.enclosing
+	}
+	return environment
 }

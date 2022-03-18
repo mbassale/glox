@@ -12,6 +12,7 @@ type Interpreter struct {
 	errorReporter ErrorReporter
 	environment   *Environment
 	globals       *Environment
+	locals        map[Expr]int
 	lastValue     interface{}
 }
 
@@ -44,6 +45,7 @@ func NewInterpreter(errorReporter ErrorReporter) Interpreter {
 		errorReporter: errorReporter,
 		globals:       &globals,
 		environment:   &globals,
+		locals:        map[Expr]int{},
 		lastValue:     nil,
 	}
 }
@@ -63,71 +65,8 @@ func (inter *Interpreter) execute(stmt Stmt) (interface{}, error) {
 	return stmt.accept(inter)
 }
 
-func isString(val interface{}) bool {
-	switch val.(type) {
-	case string:
-		return true
-	default:
-		return false
-	}
-}
-
-func isNumber(val interface{}) bool {
-	switch val.(type) {
-	case float64:
-		return true
-	default:
-		return false
-	}
-}
-
-func anyToString(val interface{}) (string, error) {
-	switch val := val.(type) {
-	case string:
-		return val, nil
-	case nil:
-		return "nil", nil
-	case float64:
-		return strconv.FormatFloat(val, 'f', -1, 64), nil
-	default:
-		return "", fmt.Errorf("cannot convert to string: %v", val)
-	}
-}
-
-func anyToFloat64(val interface{}) (float64, error) {
-	switch val := val.(type) {
-	case float64:
-		return val, nil
-	case string:
-		return strconv.ParseFloat(val, 64)
-	case float32:
-		return float64(val), nil
-	case int32:
-		return float64(val), nil
-	case int64:
-		return float64(val), nil
-	default:
-		return 0, fmt.Errorf("cannot convert to float: %v", val)
-	}
-}
-
-func isTruthy(val interface{}) (bool, error) {
-	switch val := val.(type) {
-	case bool:
-		return val, nil
-	case nil:
-		return false, nil
-	case string:
-		return len(val) > 0, nil
-	case float64:
-		return val > 0, nil
-	default:
-		return false, fmt.Errorf("cannot convert to boolean: %v", val)
-	}
-}
-
-func isEqual(left interface{}, right interface{}) bool {
-	return reflect.DeepEqual(left, right)
+func (inter *Interpreter) resolve(expr Expr, depth int) {
+	inter.locals[expr] = depth
 }
 
 func (inter *Interpreter) visitBlockStmt(stmt BlockStmt) (interface{}, error) {
@@ -370,7 +309,7 @@ func (inter *Interpreter) visitConditionalExpr(expr ConditionalExpr) (interface{
 }
 
 func (inter *Interpreter) visitVariableExpr(expr VariableExpr) (interface{}, error) {
-	value, err := inter.environment.Get(expr.Name.Lexeme)
+	value, err := inter.lookUpVariable(expr.Name, expr)
 	if err != nil {
 		return nil, err
 	}
@@ -382,7 +321,12 @@ func (inter *Interpreter) visitAssignExpr(expr AssignExpr) (interface{}, error) 
 	if err != nil {
 		return nil, err
 	}
-	inter.environment.Assign(expr.Name.Lexeme, value)
+	distance, ok := inter.locals[expr]
+	if ok {
+		inter.environment.AssignAt(distance, expr.Name.Lexeme, value)
+	} else {
+		inter.globals.Assign(expr.Name.Lexeme, value)
+	}
 	return value, nil
 }
 
@@ -474,4 +418,80 @@ func (inter *Interpreter) checkStringOperands(expr Expr, operator Token, left in
 		return returnError(err)
 	}
 	return leftVal, rightVal, nil
+}
+
+func (inter *Interpreter) lookUpVariable(name Token, expr Expr) (interface{}, error) {
+	distance, ok := inter.locals[expr]
+	if ok {
+		return inter.environment.GetAt(distance, name.Lexeme)
+	} else {
+		return inter.globals.Get(name.Lexeme)
+	}
+}
+
+func isString(val interface{}) bool {
+	switch val.(type) {
+	case string:
+		return true
+	default:
+		return false
+	}
+}
+
+func isNumber(val interface{}) bool {
+	switch val.(type) {
+	case float64:
+		return true
+	default:
+		return false
+	}
+}
+
+func anyToString(val interface{}) (string, error) {
+	switch val := val.(type) {
+	case string:
+		return val, nil
+	case nil:
+		return "nil", nil
+	case float64:
+		return strconv.FormatFloat(val, 'f', -1, 64), nil
+	default:
+		return "", fmt.Errorf("cannot convert to string: %v", val)
+	}
+}
+
+func anyToFloat64(val interface{}) (float64, error) {
+	switch val := val.(type) {
+	case float64:
+		return val, nil
+	case string:
+		return strconv.ParseFloat(val, 64)
+	case float32:
+		return float64(val), nil
+	case int32:
+		return float64(val), nil
+	case int64:
+		return float64(val), nil
+	default:
+		return 0, fmt.Errorf("cannot convert to float: %v", val)
+	}
+}
+
+func isTruthy(val interface{}) (bool, error) {
+	switch val := val.(type) {
+	case bool:
+		return val, nil
+	case nil:
+		return false, nil
+	case string:
+		return len(val) > 0, nil
+	case float64:
+		return val > 0, nil
+	default:
+		return false, fmt.Errorf("cannot convert to boolean: %v", val)
+	}
+}
+
+func isEqual(left interface{}, right interface{}) bool {
+	return reflect.DeepEqual(left, right)
 }
