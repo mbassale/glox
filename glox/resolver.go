@@ -24,12 +24,16 @@ func (r *Resolver) endScope() {
 
 func (r *Resolver) ResolveStatements(statements []Stmt) {
 	for _, stmt := range statements {
-		r.resolve(stmt)
+		r.resolveStatement(stmt)
 	}
 }
 
-func (r *Resolver) resolve(stmt Stmt) {
+func (r *Resolver) resolveStatement(stmt Stmt) {
 	stmt.accept(r)
+}
+
+func (r *Resolver) resolveExpression(expr Expr) {
+	expr.accept(r)
 }
 
 func (r *Resolver) resolveLocal(expr Expr, name Token) {
@@ -73,36 +77,36 @@ func (r *Resolver) visitBlockStmt(stmt BlockStmt) (interface{}, error) {
 }
 
 func (r *Resolver) visitExpressionStmt(stmt ExpressionStmt) (interface{}, error) {
-	r.resolve(stmt.Expression)
+	r.resolveExpression(stmt.Expression)
 	return nil, nil
 }
 
 func (r *Resolver) visitPrintStmt(stmt PrintStmt) (interface{}, error) {
-	r.resolve(stmt.Print)
+	r.resolveExpression(stmt.Print)
 	return nil, nil
 }
 
 func (r *Resolver) visitVarStmt(stmt VarStmt) (interface{}, error) {
 	r.declare(stmt.Name)
 	if stmt.Initializer != nil {
-		r.resolve(stmt.Initializer)
+		r.resolveExpression(stmt.Initializer)
 	}
 	r.define(stmt.Name)
 	return nil, nil
 }
 
 func (r *Resolver) visitIfStmt(stmt IfStmt) (interface{}, error) {
-	r.resolve(stmt.Condition)
-	r.resolve(stmt.ThenBranch)
+	r.resolveExpression(stmt.Condition)
+	r.resolveStatement(stmt.ThenBranch)
 	if stmt.ElseBranch != nil {
-		r.resolve(stmt.ElseBranch)
+		r.resolveStatement(stmt.ElseBranch)
 	}
 	return nil, nil
 }
 
 func (r *Resolver) visitWhileStmt(stmt WhileStmt) (interface{}, error) {
-	r.resolve(stmt.Condition)
-	r.resolve(stmt.Body)
+	r.resolveExpression(stmt.Condition)
+	r.resolveStatement(stmt.Body)
 	return nil, nil
 }
 
@@ -123,14 +127,14 @@ func (r *Resolver) visitFunctionStmt(stmt FunctionStmt) (interface{}, error) {
 
 func (r *Resolver) visitReturnStmt(stmt ReturnStmt) (interface{}, error) {
 	if stmt.Value != nil {
-		r.resolve(stmt.Value)
+		r.resolveExpression(stmt.Value)
 	}
 	return nil, nil
 }
 
 func (r *Resolver) visitBinaryExpr(expr BinaryExpr) (interface{}, error) {
-	r.resolve(expr.Left)
-	r.resolve(expr.Right)
+	r.resolveExpression(expr.Left)
+	r.resolveExpression(expr.Right)
 	return nil, nil
 }
 
@@ -139,7 +143,7 @@ func (r *Resolver) visitConditionalExpr(expr ConditionalExpr) (interface{}, erro
 }
 
 func (r *Resolver) visitGroupingExpr(expr GroupingExpr) (interface{}, error) {
-	r.resolve(expr.Expression)
+	r.resolveExpression(expr.Expression)
 	return nil, nil
 }
 
@@ -148,13 +152,13 @@ func (r *Resolver) visitLiteralExpr(expr LiteralExpr) (interface{}, error) {
 }
 
 func (r *Resolver) visitLogicalExpr(expr LogicalExpr) (interface{}, error) {
-	r.resolve(expr.Left)
-	r.resolve(expr.Right)
+	r.resolveExpression(expr.Left)
+	r.resolveExpression(expr.Right)
 	return nil, nil
 }
 
 func (r *Resolver) visitUnaryExpr(expr UnaryExpr) (interface{}, error) {
-	r.resolve(expr.Right)
+	r.resolveExpression(expr.Right)
 	return nil, nil
 }
 
@@ -167,15 +171,15 @@ func (r *Resolver) visitVariableExpr(expr VariableExpr) (interface{}, error) {
 }
 
 func (r *Resolver) visitAssignExpr(expr AssignExpr) (interface{}, error) {
-	r.resolve(expr.Value)
+	r.resolveExpression(expr.Value)
 	r.resolveLocal(expr, expr.Name)
 	return nil, nil
 }
 
 func (r *Resolver) visitCallExpr(expr CallExpr) (interface{}, error) {
-	r.resolve(expr.Callee)
+	r.resolveExpression(expr.Callee)
 	for _, argument := range expr.Arguments {
-		r.resolve(argument)
+		r.resolveExpression(argument)
 	}
 	return nil, nil
 }

@@ -134,6 +134,10 @@ func (p AstPrinter) parenthesize(name string, exprs ...interface{}) string {
 	var builder string
 	builder += "(" + name
 	for _, expr := range exprs {
+		if expr == nil {
+			builder += "<nil>"
+			continue
+		}
 		ast, _ := expr.(Expr).accept(p)
 		builder += " "
 		switch ast := ast.(type) {

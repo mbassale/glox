@@ -57,7 +57,9 @@ func (env *Environment) Assign(name string, value interface{}) error {
 }
 
 func (env *Environment) AssignAt(distance int, name string, value interface{}) error {
-	return env.ancestor(distance).Assign(name, value)
+	ancestorEnvironment := env.ancestor(distance)
+	ancestorEnvironment.values[name] = value
+	return nil
 }
 
 func (env *Environment) ancestor(distance int) *Environment {

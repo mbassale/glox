@@ -5,7 +5,8 @@ fun fib(n) {
 }
 
 var lastNum = nil;
-for (var i = 0; i < 20; i = i + 1) {
+var i;
+for (i = 0; i < 20; i = i + 1) {
     lastNum = fib(i);
 }
 lastNum;

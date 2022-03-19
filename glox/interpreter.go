@@ -12,7 +12,7 @@ type Interpreter struct {
 	errorReporter ErrorReporter
 	environment   *Environment
 	globals       *Environment
-	locals        map[Expr]int
+	locals        map[*Expr]int
 	lastValue     interface{}
 }
 
@@ -45,7 +45,7 @@ func NewInterpreter(errorReporter ErrorReporter) Interpreter {
 		errorReporter: errorReporter,
 		globals:       &globals,
 		environment:   &globals,
-		locals:        map[Expr]int{},
+		locals:        map[*Expr]int{},
 		lastValue:     nil,
 	}
 }
@@ -66,7 +66,7 @@ func (inter *Interpreter) execute(stmt Stmt) (interface{}, error) {
 }
 
 func (inter *Interpreter) resolve(expr Expr, depth int) {
-	inter.locals[expr] = depth
+	inter.locals[&expr] = depth
 }
 
 func (inter *Interpreter) visitBlockStmt(stmt BlockStmt) (interface{}, error) {
@@ -321,7 +321,8 @@ func (inter *Interpreter) visitAssignExpr(expr AssignExpr) (interface{}, error) 
 	if err != nil {
 		return nil, err
 	}
-	distance, ok := inter.locals[expr]
+	var e Expr = expr
+	distance, ok := inter.locals[&e]
 	if ok {
 		inter.environment.AssignAt(distance, expr.Name.Lexeme, value)
 	} else {
@@ -421,7 +422,7 @@ func (inter *Interpreter) checkStringOperands(expr Expr, operator Token, left in
 }
 
 func (inter *Interpreter) lookUpVariable(name Token, expr Expr) (interface{}, error) {
-	distance, ok := inter.locals[expr]
+	distance, ok := inter.locals[&expr]
 	if ok {
 		return inter.environment.GetAt(distance, name.Lexeme)
 	} else {
