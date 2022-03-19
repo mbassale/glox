@@ -59,6 +59,9 @@ func (r *Resolver) declare(name Token) {
 	if len(r.scopes) == 0 {
 		return
 	}
+	if _, ok := r.scopes[len(r.scopes)-1][name.Lexeme]; ok {
+		panic(fmt.Errorf("variable: %v already exists in this scope", name.Lexeme))
+	}
 	r.scopes[len(r.scopes)-1][name.Lexeme] = false
 }
 
